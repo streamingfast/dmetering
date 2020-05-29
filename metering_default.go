@@ -2,7 +2,8 @@ package dmetering
 
 import (
 	"context"
-	"github.com/dfuse-io/dauth"
+
+	"github.com/dfuse-io/dauth/authenticator"
 )
 
 var defaultMeter Metering = newNullPlugin()
@@ -15,7 +16,7 @@ func EmitWithContext(ev Event, ctx context.Context) {
 	defaultMeter.EmitWithContext(ev, ctx)
 }
 
-func EmitWithCredentials(ev Event, creds dauth.Credentials) {
+func EmitWithCredentials(ev Event, creds authenticator.Credentials) {
 	defaultMeter.EmitWithCredentials(ev, creds)
 }
 

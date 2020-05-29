@@ -3,7 +3,7 @@ package dmetering
 import (
 	"context"
 
-	"github.com/dfuse-io/dauth"
+	"github.com/dfuse-io/dauth/authenticator"
 	"go.uber.org/atomic"
 )
 
@@ -25,7 +25,7 @@ func (p *nullPlugin) EmitWithContext(ev Event, ctx context.Context) {
 	p.messagesCount.Inc()
 }
 
-func (p *nullPlugin) EmitWithCredentials(ev Event, creds dauth.Credentials) {
+func (p *nullPlugin) EmitWithCredentials(ev Event, creds authenticator.Credentials) {
 	p.messagesCount.Inc()
 }
 

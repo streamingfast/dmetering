@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/dfuse-io/dauth"
+	"github.com/dfuse-io/dauth/authenticator"
 )
 
 type Metering interface {
 	EmitWithContext(ev Event, ctx context.Context)
-	EmitWithCredentials(ev Event, creds dauth.Credentials)
+	EmitWithCredentials(ev Event, creds authenticator.Credentials)
 	GetStatusCounters() (total, errors uint64)
 	WaitToFlush()
 }
