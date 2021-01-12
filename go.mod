@@ -4,8 +4,10 @@ go 1.12
 
 require (
 	github.com/dfuse-io/dauth v0.0.0-20200529171443-21c0e2d262c2
+	github.com/dfuse-io/logging v0.0.0-20200407175011-14021b7a79af
 	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/stretchr/testify v1.5.1
 	go.opencensus.io v0.22.3 // indirect
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.14.1
