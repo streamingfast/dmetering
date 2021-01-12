@@ -7,7 +7,6 @@ import (
 	"path"
 
 	"github.com/dfuse-io/dauth/authenticator"
-	"github.com/dfuse-io/logging"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -39,8 +38,8 @@ func newZlogPlugin(dsn string) (*zlogPlugin, error) {
 		// is called multiple time, so registering multiple times cause a panic. Until we have
 		// the ability to check if a package is already registered, we cannot enable the feature,
 		// so it's disabled for now.
-		logger = zap.NewNop()
-		logging.Register(packageID, &logger)
+		// logger = zap.NewNop()
+		// logging.Register(packageID, &logger)
 	}
 
 	return &zlogPlugin{total: atomic.Uint64{}, level: level, logger: logger}, nil
