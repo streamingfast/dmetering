@@ -30,7 +30,7 @@ func NewMeteringMiddlewareFuncWithOptions(metering Metering, source, kind string
 
 type MeteringMiddleware struct {
 	next                       http.Handler
-	metering                    Metering
+	metering                   Metering
 	source                     string
 	kind                       string
 	trackRequestsAndResponses  bool
@@ -65,6 +65,7 @@ func (m *MeteringMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Event{
 				Source:         m.source,
 				Kind:           m.kind,
+				Method:         r.URL.Path,
 				RequestsCount:  req,
 				ResponsesCount: resp,
 				IngressBytes:   in,
