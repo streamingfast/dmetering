@@ -6,13 +6,13 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/dfuse-io/dauth/authenticator"
+	"github.com/streamingfast/dauth/authenticator"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var defaultPackageID = "github.com/dfuse-io/dmetering"
+var defaultPackageID = "github.com/streamingfast/dmetering"
 
 func init() {
 	Register("zlog", func(dsn string) (Metering, error) {

@@ -8,5 +8,5 @@ import (
 var zlog = zap.NewNop()
 
 func init() {
-	logging.Register("github.com/dfuse-io/dmetering", &zlog)
+	logging.Register("github.com/streamingfast/dmetering", &zlog)
 }

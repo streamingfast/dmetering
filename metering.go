@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/dfuse-io/dauth/authenticator"
+	"github.com/streamingfast/dauth/authenticator"
 )
 
 type Metering interface {

@@ -3,7 +3,7 @@ package dmetering
 import (
 	"context"
 
-	"github.com/dfuse-io/dauth/authenticator"
+	"github.com/streamingfast/dauth/authenticator"
 	"go.uber.org/atomic"
 )
 
