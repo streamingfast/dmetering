@@ -3,11 +3,9 @@ module github.com/streamingfast/dmetering
 go 1.12
 
 require (
-	github.com/dfuse-io/derr v0.0.0-20200417132224-d333cfd0e9a0 // indirect
 	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/streamingfast/dauth v0.0.0-20210811181149-e8fd545948cc
-	github.com/streamingfast/logging v0.0.0-20210811175431-f3b44b61606a // indirect
+	github.com/streamingfast/logging v0.0.0-20210811175431-f3b44b61606a
 	github.com/stretchr/testify v1.5.1
 	go.opencensus.io v0.22.3 // indirect
 	go.uber.org/atomic v1.6.0
