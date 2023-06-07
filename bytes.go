@@ -11,7 +11,7 @@ type bytesMeterKey string
 const contextKey = bytesMeterKey("bytesMeter")
 
 func MustGetBytesMeter(ctx context.Context) BytesMeter {
-	if bm, ok := ctx.Value("bytesMeter").(BytesMeter); ok {
+	if bm, ok := ctx.Value(contextKey).(BytesMeter); ok {
 		return bm
 	}
 	return NoopBytesMeter
