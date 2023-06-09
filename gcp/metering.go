@@ -169,7 +169,7 @@ func defaultTopicProvider(pubsubProject string, topicName string) *pubsub.Topic 
 
 func (m *meteringPlugin) defaultTopicEmitter(e *pbmetering.Event) {
 	if e.UserId == "" || e.Service == "" || e.Method == "" {
-		m.logger.Warn("events SHALL minimally contain UserID, Source and Kind, dropping billing event")
+		m.logger.Warn("events SHALL minimally contain UserID, Source and Kind, dropping event")
 		return
 	}
 

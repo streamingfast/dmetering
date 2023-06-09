@@ -28,12 +28,12 @@ var _ Eventable = (*FirehoseEvent)(nil)
 type FirehoseEvent struct {
 	Metadata       map[string]string `json:"metadata"`
 	Method         string            `json:"method"`
-	RequestsCount  int64             `json:"requests_count,omitempty"`
-	ResponsesCount int64             `json:"responses_count,omitempty"`
-	IngressBytes   int64             `json:"ingress_bytes,omitempty"`
-	EgressBytes    int64             `json:"egress_bytes,omitempty"`
-	BytesWritten   int64             `json:"bytes_written,omitempty"`
-	BytesRead      int64             `json:"bytes_read,omitempty"`
+	RequestsCount  float64           `json:"requests_count,omitempty"`
+	ResponsesCount float64           `json:"responses_count,omitempty"`
+	IngressBytes   float64           `json:"ingress_bytes,omitempty"`
+	EgressBytes    float64           `json:"egress_bytes,omitempty"`
+	BytesWritten   float64           `json:"bytes_written,omitempty"`
+	BytesRead      float64           `json:"bytes_read,omitempty"`
 }
 
 func (ev *FirehoseEvent) ToProto(creds authenticator.Credentials, network string) *pbmetering.Event {
@@ -67,12 +67,12 @@ func (ev *FirehoseEvent) ToProto(creds authenticator.Credentials, network string
 }
 
 type HTTPEvent struct {
-	Service        string `json:"service"`
-	Method         string `json:"method"`
-	RequestsCount  int64  `json:"requests_count,omitempty"`
-	ResponsesCount int64  `json:"responses_count,omitempty"`
-	IngressBytes   int64  `json:"ingress_bytes,omitempty"`
-	EgressBytes    int64  `json:"egress_bytes,omitempty"`
+	Service        string  `json:"service"`
+	Method         string  `json:"method"`
+	RequestsCount  float64 `json:"requests_count,omitempty"`
+	ResponsesCount float64 `json:"responses_count,omitempty"`
+	IngressBytes   float64 `json:"ingress_bytes,omitempty"`
+	EgressBytes    float64 `json:"egress_bytes,omitempty"`
 }
 
 func (ev *HTTPEvent) ToProto(creds authenticator.Credentials, network string) *pbmetering.Event {

@@ -50,14 +50,14 @@ func (m *MeteringMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		m.next.ServeHTTP(meteringWriter, r)
 
-		var req, resp, in, out int64
+		var req, resp, in, out float64
 		if m.trackRequestsAndResponses {
 			req = 1
 			resp = 1
 		}
 		if m.trackIngressAndEgressBytes {
-			in = r.ContentLength
-			out = meteringWriter.totalWrittenBytes
+			in = float64(r.ContentLength)
+			out = float64(meteringWriter.totalWrittenBytes)
 		}
 
 		m.metering.EmitWithContext(

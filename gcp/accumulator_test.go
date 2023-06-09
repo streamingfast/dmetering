@@ -74,7 +74,7 @@ func TestAccumulator(t *testing.T) {
 					default:
 						panic("unknonw value")
 					}
-					assert.Equal(t, int64(base*c.numberOfEvent), metric.Value)
+					assert.Equal(t, float64(base*c.numberOfEvent), metric.Value)
 				}
 				close(done)
 			}
