@@ -112,7 +112,6 @@ func TestEmitter(t *testing.T) {
 			assert.Equal(t, "user.id.1", event.UserId)
 			assert.Equal(t, "network.1", event.Network)
 			assert.Equal(t, "service.1", event.Service)
-			assert.Equal(t, "kind.1", event.Kind)
 			assert.NotNil(t, event.Timestamp)
 
 			mCount, eCount := m.GetStatusCounters()
@@ -125,7 +124,7 @@ func TestEmitter(t *testing.T) {
 
 	m.EmitWithCredentials(dmetering.Event{
 		Service: "service.1",
-		Kind:    "kind.1",
+		Method:  "method.1",
 	}, &mockCredentials{
 		i: &authenticator.Identification{
 			UserId: "user.id.1",

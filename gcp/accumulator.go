@@ -44,14 +44,37 @@ func (a *Accumulator) emit(event *pbmetering.Event) {
 		return
 	}
 
-	e.RequestsCount += event.RequestsCount
-	e.ResponsesCount += event.ResponsesCount
-	e.RateLimitHitCount += event.RateLimitHitCount
-	e.IngressBytes += event.IngressBytes
-	e.EgressBytes += event.EgressBytes
-	e.IdleTime += event.IdleTime
-	e.Timestamp = ptypes.TimestampNow()
+	// merge metrics
+	for _, spotMetric := range event.Metrics {
+		added := false
+		for _, aggregateMetric := range e.Metrics {
+			if aggregateMetric.Key == spotMetric.Key {
+				aggregateMetric.Value += spotMetric.Value
+				added = true
+				break
+			}
+		}
+		if !added {
+			e.Metrics = append(e.Metrics, spotMetric)
+		}
+	}
 
+	// merge metadata
+	for _, spotMeta := range event.Metadata {
+		added := false
+		for _, aggregateMeta := range e.Metadata {
+			if aggregateMeta.Key == spotMeta.Key {
+				aggregateMeta.Value = spotMeta.Value //replace
+				added = true
+				break
+			}
+		}
+		if !added {
+			e.Metadata = append(e.Metadata, spotMeta)
+		}
+	}
+
+	e.Timestamp = ptypes.TimestampNow()
 }
 
 func (a *Accumulator) delayedEmitter() {
@@ -86,7 +109,6 @@ func eventToKey(event *pbmetering.Event) string {
 
 	// Accumulator `GROUP BY` key
 	return event.UserId +
-		event.Kind +
 		event.Service +
 		event.Network +
 		event.ApiKeyUsage +

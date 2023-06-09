@@ -32,7 +32,6 @@ func TestAccumulatorDelay(t *testing.T) {
 }
 
 func TestAccumulator(t *testing.T) {
-
 	delay := 1 * time.Minute
 	cases := []struct {
 		name          string
@@ -48,7 +47,7 @@ func TestAccumulator(t *testing.T) {
 		},
 		{
 			name:          "100 events",
-			numberOfEvent: 2,
+			numberOfEvent: 100,
 		},
 	}
 
@@ -56,25 +55,50 @@ func TestAccumulator(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			done := make(chan bool)
 			emitter := func(event *pbmetering.Event) {
-				assert.Equal(t, int64(1*c.numberOfEvent), event.RequestsCount)
-				assert.Equal(t, int64(10*c.numberOfEvent), event.ResponsesCount)
-				assert.Equal(t, int64(100*c.numberOfEvent), event.RateLimitHitCount)
-				assert.Equal(t, int64(1000*c.numberOfEvent), event.IngressBytes)
-				assert.Equal(t, int64(10000*c.numberOfEvent), event.EgressBytes)
-				assert.Equal(t, int64(100000*c.numberOfEvent), event.IdleTime)
+				//check metrics
+				for _, metric := range event.Metrics {
+					var base int
+					switch metric.Key {
+					case "requests_count":
+						base = 1
+					case "responses_count":
+						base = 10
+					case "ingress_bytes":
+						base = 100
+					case "egress_bytes":
+						base = 1000
+					case "read_bytes":
+						base = 10000
+					case "written_bytes":
+						base = 100000
+					default:
+						panic("unknown value")
+					}
+					assert.Equal(t, float64(base*c.numberOfEvent), metric.Value)
+				}
+
+				//check metadata
+				assert.Equal(t, 2, len(event.Metadata))
+
 				close(done)
 			}
 			accumulator := newAccumulator(emitter, delay, zlog)
 
 			for i := 0; i < c.numberOfEvent; i++ {
 				accumulator.emit(&pbmetering.Event{
-					UserId:            "user.id.1",
-					RequestsCount:     1,
-					ResponsesCount:    10,
-					RateLimitHitCount: 100,
-					IngressBytes:      1000,
-					EgressBytes:       10000,
-					IdleTime:          100000,
+					UserId: "user.id.1",
+					Metrics: []*pbmetering.Metric{
+						{Key: "requests_count", Value: 1},
+						{Key: "responses_count", Value: 10},
+						{Key: "ingress_bytes", Value: 100},
+						{Key: "egress_bytes", Value: 1000},
+						{Key: "read_bytes", Value: 10000},
+						{Key: "written_bytes", Value: 100000},
+					},
+					Metadata: []*pbmetering.MetadataField{
+						{Key: "key1", Value: "value1"},
+						{Key: "key2", Value: "value2"},
+					},
 				})
 			}
 			accumulator.emitAccumulatedEvents()
@@ -88,7 +112,7 @@ func TestAccumulator(t *testing.T) {
 	}
 }
 
-func TestAccumulatorDiffentEventKey(t *testing.T) {
+func TestAccumulatorDifferentEventKey(t *testing.T) {
 	delay := 1 * time.Minute
 	done := make(chan bool)
 	events := map[string]*pbmetering.Event{}

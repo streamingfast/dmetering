@@ -119,44 +119,52 @@ func (m *meteringPlugin) isStreamingFastDomain(ctx context.Context) bool {
 
 func (m *meteringPlugin) EmitWithContext(ev dmetering.Event, ctx context.Context) {
 	credentials := authenticator.GetCredentials(ctx)
-	if m.isStreamingFastDomain(ctx) {
-		ev.Service = fmt.Sprintf("sf:%s", ev.Service) // will give something like `sf:firehose` or `sf:dgraphql` ...
-	}
 	m.EmitWithCredentials(ev, credentials)
 }
 
 func (m *meteringPlugin) EmitWithCredentials(ev dmetering.Event, creds authenticator.Credentials) {
 
-	fields := []*pbmetering.MetadataField{}
+	identification := creds.Identification()
+	event := &pbmetering.Event{
+		Service:     ev.Service,
+		Method:      ev.Method,
+		Network:     m.network,
+		Metadata:    []*pbmetering.MetadataField{},
+		Metrics:     []*pbmetering.Metric{},
+		UserId:      identification.UserId,
+		ApiKeyId:    identification.ApiKeyId,
+		ApiKey:      identification.ApiKey,
+		ApiKeyUsage: identification.ApiKeyUsage,
+		IpAddress:   identification.IpAddress,
+	}
+
 	for k, v := range ev.Metadata {
-		fields = append(fields, &pbmetering.MetadataField{
+		event.Metadata = append(event.Metadata, &pbmetering.MetadataField{
 			Key:   k,
 			Value: v,
 		})
 	}
 
-	identification := creds.Identification()
-
-	meteringeEvent := &pbmetering.Event{
-		Service:           ev.Service,
-		Kind:              ev.Kind,
-		Method:            ev.Method,
-		Network:           m.network,
-		Metadata:          fields,
-		RequestsCount:     ev.RequestsCount,
-		ResponsesCount:    ev.ResponsesCount,
-		RateLimitHitCount: ev.RateLimitHitCount,
-		IngressBytes:      ev.IngressBytes,
-		EgressBytes:       ev.EgressBytes,
-		IdleTime:          ev.IdleTime,
-		UserId:            identification.UserId,
-		ApiKeyId:          identification.ApiKeyId,
-		ApiKey:            identification.ApiKey,
-		ApiKeyUsage:       identification.ApiKeyUsage,
-		IpAddress:         identification.IpAddress,
+	if ev.RequestsCount > 0 {
+		event.Metrics = append(event.Metrics, &pbmetering.Metric{Key: "requests_count", Value: float64(ev.RequestsCount)})
+	}
+	if ev.ResponsesCount > 0 {
+		event.Metrics = append(event.Metrics, &pbmetering.Metric{Key: "responses_count", Value: float64(ev.ResponsesCount)})
+	}
+	if ev.IngressBytes > 0 {
+		event.Metrics = append(event.Metrics, &pbmetering.Metric{Key: "ingress_bytes", Value: float64(ev.IngressBytes)})
+	}
+	if ev.EgressBytes > 0 {
+		event.Metrics = append(event.Metrics, &pbmetering.Metric{Key: "egress_bytes", Value: float64(ev.EgressBytes)})
+	}
+	if ev.ReadBytes > 0 {
+		event.Metrics = append(event.Metrics, &pbmetering.Metric{Key: "read_bytes", Value: float64(ev.ReadBytes)})
+	}
+	if ev.WrittenBytes > 0 {
+		event.Metrics = append(event.Metrics, &pbmetering.Metric{Key: "written_bytes", Value: float64(ev.WrittenBytes)})
 	}
 
-	m.emit(meteringeEvent)
+	m.emit(event)
 }
 
 func (m *meteringPlugin) emit(e *pbmetering.Event) {
@@ -201,8 +209,8 @@ func defaultTopicProvider(pubsubProject string, topicName string) *pubsub.Topic 
 }
 
 func (m *meteringPlugin) defaultTopicEmitter(e *pbmetering.Event) {
-	if e.UserId == "" || e.Service == "" || e.Kind == "" {
-		m.logger.Warn("events SHALL minimally contain UserID, Source and Kind, dropping billing event")
+	if e.Service == "" || e.Method == "" {
+		m.logger.Warn("events SHALL minimally contain Service and Method, dropping event")
 		return
 	}
 

@@ -2,14 +2,15 @@ package dmetering
 
 // Event represents a metering event that needs to be recorded
 type Event struct {
-	Service           string            `json:"service"`
-	Metadata          map[string]string `json:"metdata"`
-	Kind              string            `json:"kind"`
-	Method            string            `json:"method"`
-	RequestsCount     int64             `json:"requests_count,omitempty"`
-	ResponsesCount    int64             `json:"responses_count,omitempty"`
-	IngressBytes      int64             `json:"ingress_bytes,omitempty"`
-	EgressBytes       int64             `json:"egress_bytes,omitempty"`
-	IdleTime          int64             `json:"idle_time,omitempty"`
-	RateLimitHitCount int64             `json:"rate_limit_hit_count,omitempty"`
+	// Defines the service that emitted the event (firehose, substreams, evmx ...)
+	Service string `json:"service"`
+	// Defines the method within the service  (grpc_blocks, grpc_run, http_get_state, ....)
+	Method         string            `json:"method"`
+	Metadata       map[string]string `json:"metadata"`
+	RequestsCount  uint64            `json:"requests_count,omitempty"`
+	ResponsesCount uint64            `json:"responses_count,omitempty"`
+	IngressBytes   float64           `json:"ingress_bytes,omitempty"`
+	EgressBytes    float64           `json:"egress_bytes,omitempty"`
+	WrittenBytes   float64           `json:"written_bytes,omitempty"`
+	ReadBytes      float64           `json:"read_bytes,omitempty"`
 }
