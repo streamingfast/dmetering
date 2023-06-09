@@ -56,25 +56,41 @@ func TestAccumulator(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			done := make(chan bool)
 			emitter := func(event *pbmetering.Event) {
-				assert.Equal(t, int64(1*c.numberOfEvent), event.RequestsCount)
-				assert.Equal(t, int64(10*c.numberOfEvent), event.ResponsesCount)
-				assert.Equal(t, int64(100*c.numberOfEvent), event.RateLimitHitCount)
-				assert.Equal(t, int64(1000*c.numberOfEvent), event.IngressBytes)
-				assert.Equal(t, int64(10000*c.numberOfEvent), event.EgressBytes)
-				assert.Equal(t, int64(100000*c.numberOfEvent), event.IdleTime)
+				for _, metric := range event.Metrics {
+					var base int
+					switch metric.Key {
+					case pbmetering.Metric_REQUESTS_COUNT:
+						base = 1
+					case pbmetering.Metric_RESPONSES_COUNT:
+						base = 10
+					case pbmetering.Metric_INGRESS_BYTES:
+						base = 100
+					case pbmetering.Metric_EGRESS_BYTES:
+						base = 1000
+					case pbmetering.Metric_READ_BYTES:
+						base = 10000
+					case pbmetering.Metric_WRITTEN_BYTES:
+						base = 100000
+					default:
+						panic("unknonw value")
+					}
+					assert.Equal(t, int64(base*c.numberOfEvent), metric.Value)
+				}
 				close(done)
 			}
 			accumulator := newAccumulator(emitter, delay, zlog)
 
 			for i := 0; i < c.numberOfEvent; i++ {
 				accumulator.emit(&pbmetering.Event{
-					UserId:            "user.id.1",
-					RequestsCount:     1,
-					ResponsesCount:    10,
-					RateLimitHitCount: 100,
-					IngressBytes:      1000,
-					EgressBytes:       10000,
-					IdleTime:          100000,
+					UserId: "user.id.1",
+					Metrics: []*pbmetering.Metric{
+						{Key: pbmetering.Metric_REQUESTS_COUNT, Value: 1},
+						{Key: pbmetering.Metric_RESPONSES_COUNT, Value: 10},
+						{Key: pbmetering.Metric_INGRESS_BYTES, Value: 100},
+						{Key: pbmetering.Metric_EGRESS_BYTES, Value: 1000},
+						{Key: pbmetering.Metric_READ_BYTES, Value: 10000},
+						{Key: pbmetering.Metric_WRITTEN_BYTES, Value: 100000},
+					},
 				})
 			}
 			accumulator.emitAccumulatedEvents()

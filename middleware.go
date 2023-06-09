@@ -5,26 +5,25 @@ import (
 	"strings"
 )
 
-func NewMeteringMiddleware(next http.Handler, metering Metering, service, kind string, trackRequestsAndResponses, trackIngressAndEgressBytes bool) http.Handler {
+func NewMeteringMiddleware(next http.Handler, metering Metering, service string, trackRequestsAndResponses, trackIngressAndEgressBytes bool) http.Handler {
 	return &MeteringMiddleware{
 		next:                       next,
 		metering:                   metering,
 		service:                    service,
-		kind:                       kind,
 		trackRequestsAndResponses:  trackRequestsAndResponses,
 		trackIngressAndEgressBytes: trackIngressAndEgressBytes,
 	}
 }
 
-func NewMeteringMiddlewareFunc(metering Metering, source, kind string) func(http.Handler) http.Handler {
+func NewMeteringMiddlewareFunc(metering Metering, source string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return NewMeteringMiddleware(next, metering, source, kind, true, true)
+		return NewMeteringMiddleware(next, metering, source, true, true)
 	}
 }
 
-func NewMeteringMiddlewareFuncWithOptions(metering Metering, source, kind string, trackRequestsAndResponses, trackIngressAndEgressBytes bool) func(http.Handler) http.Handler {
+func NewMeteringMiddlewareFuncWithOptions(metering Metering, source string, trackRequestsAndResponses, trackIngressAndEgressBytes bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return NewMeteringMiddleware(next, metering, source, kind, trackRequestsAndResponses, trackIngressAndEgressBytes)
+		return NewMeteringMiddleware(next, metering, source, trackRequestsAndResponses, trackIngressAndEgressBytes)
 	}
 }
 
@@ -62,9 +61,8 @@ func (m *MeteringMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		m.metering.EmitWithContext(
-			Event{
+			&HTTPEvent{
 				Service:        m.service,
-				Kind:           m.kind,
 				Method:         r.URL.Path,
 				RequestsCount:  req,
 				ResponsesCount: resp,

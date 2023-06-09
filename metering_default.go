@@ -12,11 +12,11 @@ func SetDefaultMeter(m Metering) {
 	defaultMeter = m
 }
 
-func EmitWithContext(ev Event, ctx context.Context) {
+func EmitWithContext(ev Eventable, ctx context.Context) {
 	defaultMeter.EmitWithContext(ev, ctx)
 }
 
-func EmitWithCredentials(ev Event, creds authenticator.Credentials) {
+func EmitWithCredentials(ev Eventable, creds authenticator.Credentials) {
 	defaultMeter.EmitWithCredentials(ev, creds)
 }
 
