@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"go.uber.org/zap"
+
 	"github.com/streamingfast/dauth/authenticator"
 )
 
@@ -17,7 +19,7 @@ type Metering interface {
 
 var registry = make(map[string]FactoryFunc)
 
-func New(config string) (Metering, error) {
+func New(config string, logger *zap.Logger) (Metering, error) {
 	u, err := url.Parse(config)
 	if err != nil {
 		return nil, err
@@ -27,10 +29,10 @@ func New(config string) (Metering, error) {
 	if factory == nil {
 		panic(fmt.Sprintf("no Metering plugin named \"%s\" is currently registered", u.Scheme))
 	}
-	return factory(config)
+	return factory(config, logger)
 }
 
-type FactoryFunc func(config string) (Metering, error)
+type FactoryFunc func(config string, logger *zap.Logger) (Metering, error)
 
 func Register(name string, factory FactoryFunc) {
 	registry[name] = factory

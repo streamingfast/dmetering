@@ -3,12 +3,14 @@ package dmetering
 import (
 	"context"
 
+	"go.uber.org/zap"
+
 	"github.com/streamingfast/dauth/authenticator"
 	"go.uber.org/atomic"
 )
 
 func init() {
-	Register("null", func(config string) (Metering, error) {
+	Register("null", func(config string, logger *zap.Logger) (Metering, error) {
 		return newNullPlugin(), nil
 	})
 }

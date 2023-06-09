@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-func NewMeteringMiddleware(next http.Handler, metering Metering, source, kind string, trackRequestsAndResponses, trackIngressAndEgressBytes bool) http.Handler {
+func NewMeteringMiddleware(next http.Handler, metering Metering, service, kind string, trackRequestsAndResponses, trackIngressAndEgressBytes bool) http.Handler {
 	return &MeteringMiddleware{
 		next:                       next,
 		metering:                   metering,
-		source:                     source,
+		service:                    service,
 		kind:                       kind,
 		trackRequestsAndResponses:  trackRequestsAndResponses,
 		trackIngressAndEgressBytes: trackIngressAndEgressBytes,
@@ -31,7 +31,7 @@ func NewMeteringMiddlewareFuncWithOptions(metering Metering, source, kind string
 type MeteringMiddleware struct {
 	next                       http.Handler
 	metering                   Metering
-	source                     string
+	service                    string
 	kind                       string
 	trackRequestsAndResponses  bool
 	trackIngressAndEgressBytes bool
@@ -63,7 +63,7 @@ func (m *MeteringMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		m.metering.EmitWithContext(
 			Event{
-				Source:         m.source,
+				Service:        m.service,
 				Kind:           m.kind,
 				Method:         r.URL.Path,
 				RequestsCount:  req,

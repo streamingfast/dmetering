@@ -15,8 +15,8 @@ import (
 var defaultPackageID = "github.com/streamingfast/dmetering"
 
 func init() {
-	Register("zlog", func(dsn string) (Metering, error) {
-		return newZlogPlugin(dsn)
+	Register("zlog", func(dsn string, logger *zap.Logger) (Metering, error) {
+		return newZlogPlugin(dsn, logger)
 	})
 }
 
@@ -26,13 +26,12 @@ type zlogPlugin struct {
 	logger *zap.Logger
 }
 
-func newZlogPlugin(dsn string) (*zlogPlugin, error) {
-	packageID, level, err := parseZlogPluginDSN(dsn)
+func newZlogPlugin(dsn string, logger *zap.Logger) (*zlogPlugin, error) {
+	packageID, level, err := parseZlogPluginDSN(dsn, logger)
 	if err != nil {
 		return nil, fmt.Errorf("invalid dsn %q: %w", dsn, err)
 	}
 
-	logger := zlog
 	if packageID != defaultPackageID {
 		// This cannot work unless we check if the logger is already registered. This method
 		// is called multiple time, so registering multiple times cause a panic. Until we have
@@ -65,7 +64,7 @@ func (p *zlogPlugin) GetStatusCounters() (total, errors uint64) {
 func (p *zlogPlugin) WaitToFlush() {
 }
 
-func parseZlogPluginDSN(dsn string) (packageID string, level zapcore.Level, err error) {
+func parseZlogPluginDSN(dsn string, logger *zap.Logger) (packageID string, level zapcore.Level, err error) {
 	url, err := url.Parse(dsn)
 	if err != nil {
 		return packageID, level, fmt.Errorf("parse: %w", err)
@@ -76,13 +75,13 @@ func parseZlogPluginDSN(dsn string) (packageID string, level zapcore.Level, err 
 		packageID = defaultPackageID
 	}
 
-	return packageID, zapPluginLevelFromQuery(url.Query()), nil
+	return packageID, zapPluginLevelFromQuery(url.Query(), logger), nil
 }
 
-func zapPluginLevelFromQuery(query url.Values) zapcore.Level {
+func zapPluginLevelFromQuery(query url.Values, logger *zap.Logger) zapcore.Level {
 	var level zapcore.Level
 	if err := level.UnmarshalText([]byte(query.Get("level"))); err != nil {
-		zlog.Warn("unable to extract level from query", zap.String("value", query.Get("level")), zap.Error(err))
+		logger.Warn("unable to extract level from query", zap.String("value", query.Get("level")), zap.Error(err))
 		return zap.InfoLevel
 	}
 

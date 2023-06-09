@@ -25,7 +25,7 @@ func TestZlogPlugin_ParseDSN(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			packageID, level, err := parseZlogPluginDSN(test.in)
+			packageID, level, err := parseZlogPluginDSN(test.in, nil)
 			if test.expectedErr == nil {
 				require.NoError(t, err)
 				assert.Equal(t, test.expectedPackageID, packageID)
