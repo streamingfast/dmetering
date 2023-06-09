@@ -44,6 +44,7 @@ func (a *Accumulator) emit(event *pbmetering.Event) {
 		return
 	}
 
+	// merge metrics
 	for _, spotMetric := range event.Metrics {
 		added := false
 		for _, aggregateMetric := range e.Metrics {
@@ -57,17 +58,23 @@ func (a *Accumulator) emit(event *pbmetering.Event) {
 			e.Metrics = append(e.Metrics, spotMetric)
 		}
 	}
-	//
-	//
-	//
-	//e.RequestsCount += event.RequestsCount
-	//e.ResponsesCount += event.ResponsesCount
-	//e.RateLimitHitCount += event.RateLimitHitCount
-	//e.IngressBytes += event.IngressBytes
-	//e.EgressBytes += event.EgressBytes
-	//e.IdleTime += event.IdleTime
-	e.Timestamp = ptypes.TimestampNow()
 
+	// merge metadata
+	for _, spotMeta := range event.Metadata {
+		added := false
+		for _, aggregateMeta := range e.Metadata {
+			if aggregateMeta.Key == spotMeta.Key {
+				aggregateMeta.Value = spotMeta.Value //replace
+				added = true
+				break
+			}
+		}
+		if !added {
+			e.Metadata = append(e.Metadata, spotMeta)
+		}
+	}
+
+	e.Timestamp = ptypes.TimestampNow()
 }
 
 func (a *Accumulator) delayedEmitter() {

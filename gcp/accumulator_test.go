@@ -32,7 +32,6 @@ func TestAccumulatorDelay(t *testing.T) {
 }
 
 func TestAccumulator(t *testing.T) {
-
 	delay := 1 * time.Minute
 	cases := []struct {
 		name          string
@@ -48,7 +47,7 @@ func TestAccumulator(t *testing.T) {
 		},
 		{
 			name:          "100 events",
-			numberOfEvent: 2,
+			numberOfEvent: 100,
 		},
 	}
 
@@ -56,6 +55,7 @@ func TestAccumulator(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			done := make(chan bool)
 			emitter := func(event *pbmetering.Event) {
+				//check metrics
 				for _, metric := range event.Metrics {
 					var base int
 					switch metric.Key {
@@ -72,10 +72,14 @@ func TestAccumulator(t *testing.T) {
 					case pbmetering.Metric_WRITTEN_BYTES:
 						base = 100000
 					default:
-						panic("unknonw value")
+						panic("unknown value")
 					}
 					assert.Equal(t, float64(base*c.numberOfEvent), metric.Value)
 				}
+
+				//check metadata
+				assert.Equal(t, 2, len(event.Metadata))
+
 				close(done)
 			}
 			accumulator := newAccumulator(emitter, delay, zlog)
@@ -91,6 +95,10 @@ func TestAccumulator(t *testing.T) {
 						{Key: pbmetering.Metric_READ_BYTES, Value: 10000},
 						{Key: pbmetering.Metric_WRITTEN_BYTES, Value: 100000},
 					},
+					Metadata: []*pbmetering.MetadataField{
+						{Key: "key1", Value: "value1"},
+						{Key: "key2", Value: "value2"},
+					},
 				})
 			}
 			accumulator.emitAccumulatedEvents()
@@ -104,7 +112,7 @@ func TestAccumulator(t *testing.T) {
 	}
 }
 
-func TestAccumulatorDiffentEventKey(t *testing.T) {
+func TestAccumulatorDifferentEventKey(t *testing.T) {
 	delay := 1 * time.Minute
 	done := make(chan bool)
 	events := map[string]*pbmetering.Event{}
