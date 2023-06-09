@@ -1,2 +1,2 @@
-generate.sh - Fri Jun  9 10:45:02 EDT 2023 - colindickson
+generate.sh - Fri  9 Jun 2023 12:42:19 EDT - julien
 streamingfast/proto revision: c72d870e1203d70e95230b781cff0b5ac40372e8

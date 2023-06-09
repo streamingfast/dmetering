@@ -44,13 +44,13 @@ func newZlogPlugin(dsn string, logger *zap.Logger) (*zlogPlugin, error) {
 	return &zlogPlugin{total: atomic.Uint64{}, level: level, logger: logger}, nil
 }
 
-func (p *zlogPlugin) EmitWithContext(ev Eventable, ctx context.Context) {
+func (p *zlogPlugin) EmitWithContext(ev Event, ctx context.Context) {
 	p.total.Inc()
 
 	p.logger.Check(p.level, "emitting event").Write(zap.Reflect("event", ev))
 }
 
-func (p *zlogPlugin) EmitWithCredentials(ev Eventable, creds authenticator.Credentials) {
+func (p *zlogPlugin) EmitWithCredentials(ev Event, creds authenticator.Credentials) {
 	p.total.Inc()
 
 	fields := append([]zap.Field{zap.Reflect("event", ev)}, creds.GetLogFields()...)

@@ -52,7 +52,7 @@ func TestEmitWithContext(t *testing.T) {
 			IpAddress:   "",
 		},
 	})
-	m.EmitWithContext(&dmetering.FirehoseEvent{}, ctx)
+	m.EmitWithContext(dmetering.Event{}, ctx)
 	select {
 	case <-done:
 	case <-time.After(100 * time.Millisecond):
@@ -75,7 +75,7 @@ func TestEmitWithContextMissingCredentials(t *testing.T) {
 	}
 
 	m := newMetering("network.1", "P", "dev-billable-events-v2", false, 10*time.Millisecond, topicProvider, topicEmitter, zap.NewNop())
-	m.EmitWithContext(&dmetering.FirehoseEvent{}, context.Background())
+	m.EmitWithContext(dmetering.Event{}, context.Background())
 
 	select {
 	case <-done:
@@ -111,6 +111,7 @@ func TestEmitter(t *testing.T) {
 
 			assert.Equal(t, "user.id.1", event.UserId)
 			assert.Equal(t, "network.1", event.Network)
+			assert.Equal(t, "service.1", event.Service)
 			assert.NotNil(t, event.Timestamp)
 
 			mCount, eCount := m.GetStatusCounters()
@@ -121,8 +122,9 @@ func TestEmitter(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	m.EmitWithCredentials(&dmetering.FirehoseEvent{
-		Method: "method.1",
+	m.EmitWithCredentials(dmetering.Event{
+		Service: "service.1",
+		Method:  "method.1",
 	}, &mockCredentials{
 		i: &authenticator.Identification{
 			UserId: "user.id.1",

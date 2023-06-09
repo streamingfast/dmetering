@@ -11,8 +11,8 @@ import (
 )
 
 type Metering interface {
-	EmitWithContext(ev Eventable, ctx context.Context)
-	EmitWithCredentials(ev Eventable, creds authenticator.Credentials)
+	EmitWithContext(ev Event, ctx context.Context)
+	EmitWithCredentials(ev Event, creds authenticator.Credentials)
 	GetStatusCounters() (total, errors uint64)
 	WaitToFlush()
 }

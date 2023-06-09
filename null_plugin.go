@@ -23,11 +23,11 @@ func newNullPlugin() *nullPlugin {
 	return &nullPlugin{}
 }
 
-func (p *nullPlugin) EmitWithContext(ev Eventable, ctx context.Context) {
+func (p *nullPlugin) EmitWithContext(ev Event, ctx context.Context) {
 	p.messagesCount.Inc()
 }
 
-func (p *nullPlugin) EmitWithCredentials(ev Eventable, creds authenticator.Credentials) {
+func (p *nullPlugin) EmitWithCredentials(ev Event, creds authenticator.Credentials) {
 	p.messagesCount.Inc()
 }
 

@@ -59,17 +59,17 @@ func TestAccumulator(t *testing.T) {
 				for _, metric := range event.Metrics {
 					var base int
 					switch metric.Key {
-					case pbmetering.Metric_REQUESTS_COUNT:
+					case "requests_count":
 						base = 1
-					case pbmetering.Metric_RESPONSES_COUNT:
+					case "responses_count":
 						base = 10
-					case pbmetering.Metric_INGRESS_BYTES:
+					case "ingress_bytes":
 						base = 100
-					case pbmetering.Metric_EGRESS_BYTES:
+					case "egress_bytes":
 						base = 1000
-					case pbmetering.Metric_READ_BYTES:
+					case "read_bytes":
 						base = 10000
-					case pbmetering.Metric_WRITTEN_BYTES:
+					case "written_bytes":
 						base = 100000
 					default:
 						panic("unknown value")
@@ -88,12 +88,12 @@ func TestAccumulator(t *testing.T) {
 				accumulator.emit(&pbmetering.Event{
 					UserId: "user.id.1",
 					Metrics: []*pbmetering.Metric{
-						{Key: pbmetering.Metric_REQUESTS_COUNT, Value: 1},
-						{Key: pbmetering.Metric_RESPONSES_COUNT, Value: 10},
-						{Key: pbmetering.Metric_INGRESS_BYTES, Value: 100},
-						{Key: pbmetering.Metric_EGRESS_BYTES, Value: 1000},
-						{Key: pbmetering.Metric_READ_BYTES, Value: 10000},
-						{Key: pbmetering.Metric_WRITTEN_BYTES, Value: 100000},
+						{Key: "requests_count", Value: 1},
+						{Key: "responses_count", Value: 10},
+						{Key: "ingress_bytes", Value: 100},
+						{Key: "egress_bytes", Value: 1000},
+						{Key: "read_bytes", Value: 10000},
+						{Key: "written_bytes", Value: 100000},
 					},
 					Metadata: []*pbmetering.MetadataField{
 						{Key: "key1", Value: "value1"},
