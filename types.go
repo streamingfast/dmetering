@@ -40,7 +40,7 @@ func newGRPCEmitter(endpoint string, logger *zap.Logger) (EventEmitter, error) {
 func (g *grpcEmitter) Emit(ctx context.Context, ev Event) error {
 	pbevent := ev.ToProtoMeteringEvent()
 
-	if pbevent.Service == "" {
+	if pbevent.Endpoint == "" {
 		g.logger.Warn("events must contain service, dropping event", zap.Object("event", ev))
 		return nil
 	}
