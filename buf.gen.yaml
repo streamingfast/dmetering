@@ -2,10 +2,10 @@ version: v1
 managed:
   enabled: false
 plugins:
-  - name: go
+  - plugin: buf.build/protocolbuffers/go:v1.30.0
     out: pb
     opt: paths=source_relative
-  - plugin: go-grpc
+  - plugin: buf.build/grpc/go:v1.3.0
     out: pb
     opt:
       - paths=source_relative
