@@ -16,8 +16,8 @@ message Event {
   string api_key_id  = 2;
   string ip_address = 3;
 
-  // Defines the service that emitted the event (sf.firehose.v1/Blocks ...)
-  string service = 4;
+  // Defines the endpoint that emitted the event (sf.firehose.v1/Blocks ...)
+  string endpoint = 4;
 
   // Defines the blockchain (eth-mainnet, sol-mainnet ...)
   string network = 5;

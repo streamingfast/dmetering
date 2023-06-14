@@ -13,9 +13,9 @@ import (
 )
 
 type Event struct {
-	Network string             `json:"network"`
-	Service string             `json:"service"`
-	Metrics map[string]float64 `json:"metrics,omitempty"`
+	Network  string             `json:"network"`
+	Endpoint string             `json:"endpoint"`
+	Metrics  map[string]float64 `json:"metrics,omitempty"`
 
 	UserID    string `json:"user_id"`
 	ApiKeyID  string `json:"api_key_id"`
@@ -28,7 +28,7 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("user_id", ev.UserID)
 	enc.AddString("api_key_id", ev.ApiKeyID)
 	enc.AddString("ip_address", ev.IpAddress)
-	enc.AddString("endpoint", ev.Service)
+	enc.AddString("endpoint", ev.Endpoint)
 	enc.AddString("network", ev.Network)
 	enc.AddTime("timestamp", ev.Timestamp)
 
@@ -41,7 +41,7 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 func (ev Event) ToProtoMeteringEvent() *pbmetering.Event {
 	pbev := new(pbmetering.Event)
-	pbev.Service = ev.Service
+	pbev.Endpoint = ev.Endpoint
 	pbev.Network = ev.Network
 	pbev.Timestamp = timestamppb.New(ev.Timestamp)
 	pbev.UserId = ev.UserID
