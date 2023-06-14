@@ -13,6 +13,8 @@ See example usage in [dgraphql](https://github.com/streamingfast/dgraphql).
 The following plugins are provided by this package: (feel free to implement your own)
 
 * `null://`
+* `logger://`
+* `grpc://` 
 
 
 ## Contributing

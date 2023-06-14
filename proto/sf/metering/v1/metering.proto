@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package sf.metering.v1;
+
+option go_package = "github.com/streamingfast/dmetering/pb/sf/metering/v1;pbmetering";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service Metering {
+  rpc Emit(Event) returns (google.protobuf.Empty) {}
+}
+
+message Event {
+  string user_id = 1;
+  string api_key_id  = 2;
+  string ip_address = 3;
+
+  // Defines the service that emitted the event (sf.firehose.v1/Blocks ...)
+  string service = 4;
+
+  // Defines the blockchain (eth-mainnet, sol-mainnet ...)
+  string network = 5;
+
+  repeated Metric metrics = 20;
+
+  google.protobuf.Timestamp timestamp = 30;
+}
+
+message Metric {
+  string key = 1;
+  double value = 2;
+}

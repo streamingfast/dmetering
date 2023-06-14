@@ -10,18 +10,19 @@ type bytesMeterKey string
 
 const contextKey = bytesMeterKey("bytesMeter")
 
-func GetBytesMeter(ctx context.Context) BytesMeter {
-	if bm, ok := ctx.Value(contextKey).(BytesMeter); ok {
+func GetBytesMeter(ctx context.Context) Meter {
+	if bm, ok := ctx.Value(contextKey).(Meter); ok {
 		return bm
 	}
 	return NoopBytesMeter
 }
 
-func WithBytesMeter(ctx context.Context, bm BytesMeter) context.Context {
+func WithBytesMeter(ctx context.Context) context.Context {
+	bm := NewBytesMeter()
 	return context.WithValue(ctx, contextKey, bm)
 }
 
-type BytesMeter interface {
+type Meter interface {
 	AddBytesWritten(n int)
 	AddBytesRead(n int)
 
@@ -32,7 +33,7 @@ type BytesMeter interface {
 	BytesReadDelta() uint64
 }
 
-type bytesMeter struct {
+type meter struct {
 	bytesWritten uint64
 	bytesRead    uint64
 
@@ -42,18 +43,18 @@ type bytesMeter struct {
 	mu sync.RWMutex
 }
 
-func NewBytesMeter() BytesMeter {
-	return &bytesMeter{}
+func NewBytesMeter() Meter {
+	return &meter{}
 }
 
-func (b *bytesMeter) String() string {
+func (b *meter) String() string {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
 	return fmt.Sprintf("bytes written: %d, bytes read: %d", b.bytesWritten, b.bytesRead)
 }
 
-func (b *bytesMeter) AddBytesWritten(n int) {
+func (b *meter) AddBytesWritten(n int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -65,7 +66,7 @@ func (b *bytesMeter) AddBytesWritten(n int) {
 	b.bytesWritten += uint64(n)
 }
 
-func (b *bytesMeter) AddBytesRead(n int) {
+func (b *meter) AddBytesRead(n int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -73,21 +74,21 @@ func (b *bytesMeter) AddBytesRead(n int) {
 	b.bytesRead += uint64(n)
 }
 
-func (b *bytesMeter) BytesWritten() uint64 {
+func (b *meter) BytesWritten() uint64 {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
 	return b.bytesWritten
 }
 
-func (b *bytesMeter) BytesRead() uint64 {
+func (b *meter) BytesRead() uint64 {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
 	return b.bytesRead
 }
 
-func (b *bytesMeter) BytesWrittenDelta() uint64 {
+func (b *meter) BytesWrittenDelta() uint64 {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -96,7 +97,7 @@ func (b *bytesMeter) BytesWrittenDelta() uint64 {
 	return result
 }
 
-func (b *bytesMeter) BytesReadDelta() uint64 {
+func (b *meter) BytesReadDelta() uint64 {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -105,13 +106,13 @@ func (b *bytesMeter) BytesReadDelta() uint64 {
 	return result
 }
 
-type noopBytesMeter struct{}
+type noopMeter struct{}
 
-func (_ *noopBytesMeter) AddBytesWritten(n int)     { return }
-func (_ *noopBytesMeter) AddBytesRead(n int)        { return }
-func (_ *noopBytesMeter) BytesWritten() uint64      { return 0 }
-func (_ *noopBytesMeter) BytesRead() uint64         { return 0 }
-func (_ *noopBytesMeter) BytesWrittenDelta() uint64 { return 0 }
-func (_ *noopBytesMeter) BytesReadDelta() uint64    { return 0 }
+func (_ *noopMeter) AddBytesWritten(n int)     { return }
+func (_ *noopMeter) AddBytesRead(n int)        { return }
+func (_ *noopMeter) BytesWritten() uint64      { return 0 }
+func (_ *noopMeter) BytesRead() uint64         { return 0 }
+func (_ *noopMeter) BytesWrittenDelta() uint64 { return 0 }
+func (_ *noopMeter) BytesReadDelta() uint64    { return 0 }
 
-var NoopBytesMeter BytesMeter = &noopBytesMeter{}
+var NoopBytesMeter Meter = &noopMeter{}

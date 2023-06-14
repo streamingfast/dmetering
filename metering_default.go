@@ -2,28 +2,14 @@ package dmetering
 
 import (
 	"context"
-
-	"github.com/streamingfast/dauth/authenticator"
 )
 
-var defaultMeter Metering = newNullPlugin()
+var defaultMeter EventEmitter = newNullEmitter()
 
-func SetDefaultMeter(m Metering) {
+func SetDefaultEmitter(m EventEmitter) {
 	defaultMeter = m
 }
 
-func EmitWithContext(ev Event, ctx context.Context) {
-	defaultMeter.EmitWithContext(ev, ctx)
-}
-
-func EmitWithCredentials(ev Event, creds authenticator.Credentials) {
-	defaultMeter.EmitWithCredentials(ev, creds)
-}
-
-func GetStatusCounters() (total, errors uint64) {
-	return defaultMeter.GetStatusCounters()
-}
-
-func WaitToFlush() {
-	defaultMeter.WaitToFlush()
+func Emit(ctx context.Context, event Event) error {
+	return defaultMeter.Emit(ctx, event)
 }
