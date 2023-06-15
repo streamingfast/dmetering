@@ -25,11 +25,20 @@ type Event struct {
 }
 
 func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddString("user_id", ev.UserID)
-	enc.AddString("api_key_id", ev.ApiKeyID)
-	enc.AddString("ip_address", ev.IpAddress)
+	if ev.UserID != "" {
+		enc.AddString("user_id", ev.UserID)
+	}
+	if ev.ApiKeyID != "" {
+		enc.AddString("api_key_id", ev.ApiKeyID)
+	}
+	if ev.IpAddress != "" {
+		enc.AddString("ip_address", ev.IpAddress)
+	}
+	if ev.Network != "" {
+		enc.AddString("network", ev.Network)
+	}
+
 	enc.AddString("endpoint", ev.Endpoint)
-	enc.AddString("network", ev.Network)
 	enc.AddTime("timestamp", ev.Timestamp)
 
 	for k, v := range ev.Metrics {

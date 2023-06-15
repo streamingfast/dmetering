@@ -27,7 +27,13 @@ func RegisterGRPC() {
 			return nil, fmt.Errorf("endpoint not specified (as hostname)")
 		}
 
-		return newGRPCEmitter(endpoint, logger)
+		vals := u.Query()
+		network := vals.Get("network")
+		if network == "" {
+			return nil, fmt.Errorf("network not specified (as query param)")
+		}
+
+		return newGRPCEmitter(network, endpoint, logger)
 	})
 }
 

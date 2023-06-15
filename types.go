@@ -15,10 +15,11 @@ type grpcEmitter struct {
 	*shutter.Shutter
 	client pbmetering.MeteringClient
 
-	logger *zap.Logger
+	network string
+	logger  *zap.Logger
 }
 
-func newGRPCEmitter(endpoint string, logger *zap.Logger) (EventEmitter, error) {
+func newGRPCEmitter(network string, endpoint string, logger *zap.Logger) (EventEmitter, error) {
 	client, cleanUp, err := newMeteringClient(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create external gRPC client %w", err)
@@ -27,6 +28,7 @@ func newGRPCEmitter(endpoint string, logger *zap.Logger) (EventEmitter, error) {
 	e := &grpcEmitter{
 		Shutter: shutter.New(),
 		client:  client,
+		network: network,
 		logger:  logger,
 	}
 
@@ -39,6 +41,7 @@ func newGRPCEmitter(endpoint string, logger *zap.Logger) (EventEmitter, error) {
 
 func (g *grpcEmitter) Emit(ctx context.Context, ev Event) error {
 	pbevent := ev.ToProtoMeteringEvent()
+	pbevent.Network = g.network
 
 	if pbevent.Endpoint == "" {
 		g.logger.Warn("events must contain service, dropping event", zap.Object("event", ev))
