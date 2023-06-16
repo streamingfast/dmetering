@@ -6,45 +6,42 @@ import (
 
 	"github.com/streamingfast/dgrpc"
 	pbmetering "github.com/streamingfast/dmetering/pb/sf/metering/v1"
-	"github.com/streamingfast/shutter"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 type grpcEmitter struct {
-	*shutter.Shutter
 	client pbmetering.MeteringClient
 
-	network string
-	logger  *zap.Logger
+	network   string
+	closeFunc CloseFunc
+	logger    *zap.Logger
 }
 
 func newGRPCEmitter(network string, endpoint string, logger *zap.Logger) (EventEmitter, error) {
-	client, cleanUp, err := newMeteringClient(endpoint)
+	client, closeFunc, err := newMeteringClient(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create external gRPC client %w", err)
 	}
 
 	e := &grpcEmitter{
-		Shutter: shutter.New(),
-		client:  client,
-		network: network,
-		logger:  logger,
+		client:    client,
+		network:   network,
+		closeFunc: closeFunc,
+		logger:    logger,
 	}
-
-	e.OnTerminated(func(_ error) {
-		cleanUp()
-	})
 
 	return e, nil
 }
 
+func (g *grpcEmitter) Close() error {
+	return g.closeFunc()
+}
+
 func (g *grpcEmitter) Emit(ctx context.Context, ev Event) error {
-	pbevent := ev.ToProtoMeteringEvent()
-	pbevent.Network = g.network
+	pbevent := ev.ToProto(g.network)
 
 	if pbevent.Endpoint == "" {
-		g.logger.Warn("events must contain service, dropping event", zap.Object("event", ev))
+		g.logger.Warn("events must contain endpoint, dropping event", zap.Object("event", ev))
 		return nil
 	}
 
@@ -55,19 +52,14 @@ func (g *grpcEmitter) Emit(ctx context.Context, ev Event) error {
 	return nil
 }
 
-func newMeteringClient(endpoint string) (pbmetering.MeteringClient, func(), error) {
-	var dialOptions []grpc.DialOption
-	dialOptions = append(dialOptions, grpc.WithInsecure())
-	conn, err := dgrpc.NewExternalClient(endpoint, dialOptions...)
+func newMeteringClient(endpoint string) (pbmetering.MeteringClient, CloseFunc, error) {
+	conn, err := dgrpc.NewInternalClient(endpoint)
 	if err != nil {
-		return nil, func() {}, fmt.Errorf("unable to create external gRPC client")
+		return nil, nil, fmt.Errorf("unable to create external gRPC client: %w", err)
 	}
 
 	client := pbmetering.NewMeteringClient(conn)
-	f := func() {
-		conn.Close()
-	}
-	return client, f, nil
+	return client, conn.Close, nil
 }
 
 type loggerEmitter struct {
@@ -79,7 +71,7 @@ func (l *loggerEmitter) Emit(_ context.Context, event Event) error {
 	return nil
 }
 
-func (l *loggerEmitter) Shutdown(_ error) {}
+func (l *loggerEmitter) Close() error { return nil }
 
 func newLoggerEmitter(logger *zap.Logger) EventEmitter {
 	return &loggerEmitter{
@@ -93,7 +85,7 @@ func (p *nullEmitter) Emit(_ context.Context, _ Event) error {
 	return nil
 }
 
-func (l *nullEmitter) Shutdown(_ error) {}
+func (l *nullEmitter) Close() error { return nil }
 
 func newNullEmitter() EventEmitter {
 	return &nullEmitter{}

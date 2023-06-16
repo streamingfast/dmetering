@@ -13,7 +13,6 @@ import (
 )
 
 type Event struct {
-	Network  string             `json:"network"`
 	Endpoint string             `json:"endpoint"`
 	Metrics  map[string]float64 `json:"metrics,omitempty"`
 
@@ -34,9 +33,6 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	if ev.IpAddress != "" {
 		enc.AddString("ip_address", ev.IpAddress)
 	}
-	if ev.Network != "" {
-		enc.AddString("network", ev.Network)
-	}
 
 	enc.AddString("endpoint", ev.Endpoint)
 	enc.AddTime("timestamp", ev.Timestamp)
@@ -48,10 +44,10 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
-func (ev Event) ToProtoMeteringEvent() *pbmetering.Event {
+func (ev Event) ToProto(network string) *pbmetering.Event {
 	pbev := new(pbmetering.Event)
 	pbev.Endpoint = ev.Endpoint
-	pbev.Network = ev.Network
+	pbev.Network = network
 	pbev.Timestamp = timestamppb.New(ev.Timestamp)
 	pbev.UserId = ev.UserID
 	pbev.ApiKeyId = ev.ApiKeyID
@@ -68,8 +64,10 @@ func (ev Event) ToProtoMeteringEvent() *pbmetering.Event {
 	return pbev
 }
 
+type CloseFunc func() error
+
 type EventEmitter interface {
-	Shutdown(error)
+	Close() error
 	Emit(ctx context.Context, ev Event) error
 }
 
