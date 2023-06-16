@@ -68,7 +68,7 @@ type CloseFunc func() error
 
 type EventEmitter interface {
 	Close() error
-	Emit(ctx context.Context, ev Event) error
+	Emit(ctx context.Context, ev Event)
 }
 
 func New(config string, logger *zap.Logger) (EventEmitter, error) {

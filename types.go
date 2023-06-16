@@ -37,19 +37,19 @@ func (g *grpcEmitter) Close() error {
 	return g.closeFunc()
 }
 
-func (g *grpcEmitter) Emit(ctx context.Context, ev Event) error {
+func (g *grpcEmitter) Emit(ctx context.Context, ev Event) {
 	pbevent := ev.ToProto(g.network)
 
 	if pbevent.Endpoint == "" {
 		g.logger.Warn("events must contain endpoint, dropping event", zap.Object("event", ev))
-		return nil
+		return
 	}
 
 	_, err := g.client.Emit(ctx, pbevent)
 	if err != nil {
-		return fmt.Errorf("unable to emit event: %w", err)
+		g.logger.Warn("failed to emit event", zap.Error(err))
 	}
-	return nil
+	return
 }
 
 func newMeteringClient(endpoint string) (pbmetering.MeteringClient, CloseFunc, error) {
@@ -66,9 +66,8 @@ type loggerEmitter struct {
 	logger *zap.Logger
 }
 
-func (l *loggerEmitter) Emit(_ context.Context, event Event) error {
+func (l *loggerEmitter) Emit(_ context.Context, event Event) {
 	l.logger.Info("emit", zap.Object("event", event))
-	return nil
 }
 
 func (l *loggerEmitter) Close() error { return nil }
@@ -81,8 +80,7 @@ func newLoggerEmitter(logger *zap.Logger) EventEmitter {
 
 type nullEmitter struct{}
 
-func (p *nullEmitter) Emit(_ context.Context, _ Event) error {
-	return nil
+func (p *nullEmitter) Emit(_ context.Context, _ Event) {
 }
 
 func (l *nullEmitter) Close() error { return nil }
