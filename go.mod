@@ -3,8 +3,7 @@ module github.com/streamingfast/dmetering
 go 1.19
 
 require (
-	github.com/streamingfast/dgrpc v0.0.0-20230612194237-65f8aded563b
-	github.com/streamingfast/shutter v1.5.0
+	github.com/streamingfast/dgrpc v0.0.0-20230616153353-6bbf5534a79a
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0

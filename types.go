@@ -53,7 +53,7 @@ func (g *grpcEmitter) Emit(ctx context.Context, ev Event) {
 }
 
 func newMeteringClient(endpoint string) (pbmetering.MeteringClient, CloseFunc, error) {
-	conn, err := dgrpc.NewInternalClient(endpoint)
+	conn, err := dgrpc.NewInternalNoWaitClient(endpoint)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create external gRPC client: %w", err)
 	}
