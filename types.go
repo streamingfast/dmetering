@@ -14,10 +14,11 @@ import (
 type grpcEmitter struct {
 	client pbmetering.MeteringClient
 
-	eventBuffer   chan Event
-	launchCtx     context.Context
-	launchCancel  context.CancelFunc
-	eventsDropped *atomic.Uint64
+	eventBuffer       chan Event
+	launchCtx         context.Context
+	launchCancel      context.CancelFunc
+	eventsDropped     *atomic.Uint64
+	failureLastPeriod *atomic.Bool
 
 	network   string
 	closeFunc CloseFunc
@@ -38,10 +39,11 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 		closeFunc: closeFunc,
 		logger:    logger,
 
-		eventBuffer:   make(chan Event, bufferSize),
-		launchCtx:     launchCtx,
-		launchCancel:  launchCancel,
-		eventsDropped: atomic.NewUint64(0),
+		eventBuffer:       make(chan Event, bufferSize),
+		launchCtx:         launchCtx,
+		launchCancel:      launchCancel,
+		eventsDropped:     atomic.NewUint64(0),
+		failureLastPeriod: atomic.NewBool(false),
 	}
 
 	go func() {
@@ -56,7 +58,7 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 	}()
 
 	go func() {
-		//check every 10 seconds if there are dropped events
+		//check every 10 seconds if there are dropped events or failures, reset
 		for {
 			select {
 			case <-e.launchCtx.Done():
@@ -64,7 +66,11 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 			case <-time.After(10 * time.Second):
 				dropped := e.eventsDropped.Load()
 				if dropped > 0 {
-					e.logger.Warn("metering events dropped. consider increasing buffer size", zap.Uint64("count", dropped), zap.Int("current_buffer_size", bufferSize))
+					e.logger.Warn("metering events dropped in last 10 seconds. consider increasing buffer size", zap.Uint64("count", dropped), zap.Int("current_buffer_size", bufferSize))
+				}
+
+				if e.failureLastPeriod.Load() {
+					e.failureLastPeriod.Store(false)
 				}
 			}
 		}
@@ -74,8 +80,14 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 }
 
 func (g *grpcEmitter) Close() error {
-	g.logger.Info("giving some time for buffer to clear")
-	<-time.After(5 * time.Second)
+	g.logger.Info("giving some time for metrics buffer to clear")
+	now := time.Now()
+	for len(g.eventBuffer) != 0 {
+		<-time.After(500 * time.Millisecond)
+		if time.Since(now) > time.Second*5 {
+			break
+		}
+	}
 
 	g.launchCancel()
 	return g.closeFunc()
@@ -99,7 +111,9 @@ func (g *grpcEmitter) emit(ctx context.Context, ev Event) {
 
 	_, err := g.client.Emit(ctx, pbevent)
 	if err != nil {
-		g.logger.Warn("failed to emit event", zap.Error(err))
+		if g.failureLastPeriod.CAS(false, true) {
+			g.logger.Warn("failed to emit event (warning muted for 10 seconds)", zap.Error(err))
+		}
 	}
 	return
 }
