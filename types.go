@@ -3,6 +3,7 @@ package dmetering
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/streamingfast/dgrpc"
 	pbmetering "github.com/streamingfast/dmetering/pb/sf/metering/v1"
@@ -12,32 +13,80 @@ import (
 type grpcEmitter struct {
 	client pbmetering.MeteringClient
 
+	eventBuffer   chan Event
+	launchCtx     context.Context
+	launchCancel  context.CancelFunc
+	eventsDropped int
+
 	network   string
 	closeFunc CloseFunc
 	logger    *zap.Logger
 }
 
-func newGRPCEmitter(network string, endpoint string, logger *zap.Logger) (EventEmitter, error) {
+func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferSize int) (EventEmitter, error) {
 	client, closeFunc, err := newMeteringClient(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create external gRPC client %w", err)
 	}
+
+	launchCtx, launchCancel := context.WithCancel(context.Background())
 
 	e := &grpcEmitter{
 		client:    client,
 		network:   network,
 		closeFunc: closeFunc,
 		logger:    logger,
+
+		eventBuffer:  make(chan Event, bufferSize),
+		launchCtx:    launchCtx,
+		launchCancel: launchCancel,
 	}
+
+	go func() {
+		for {
+			select {
+			case <-e.launchCtx.Done():
+				return
+			case ev := <-e.eventBuffer:
+				e.emit(e.launchCtx, ev)
+			}
+		}
+	}()
+
+	go func() {
+		//check every 10 seconds if there are dropped events
+		for {
+			select {
+			case <-e.launchCtx.Done():
+				return
+			case <-time.After(10 * time.Second):
+				if e.eventsDropped > 0 {
+					e.logger.Warn("metering events dropped. consider increasing buffer size", zap.Int("count", e.eventsDropped), zap.Int("current_buffer_size", bufferSize))
+				}
+			}
+		}
+	}()
 
 	return e, nil
 }
 
 func (g *grpcEmitter) Close() error {
+	g.logger.Info("giving some time for buffer to clear")
+	<-time.After(5 * time.Second)
+
+	g.launchCancel()
 	return g.closeFunc()
 }
 
-func (g *grpcEmitter) Emit(ctx context.Context, ev Event) {
+func (g *grpcEmitter) Emit(_ context.Context, ev Event) {
+	select {
+	case g.eventBuffer <- ev:
+	default:
+		g.eventsDropped++
+	}
+}
+
+func (g *grpcEmitter) emit(ctx context.Context, ev Event) {
 	pbevent := ev.ToProto(g.network)
 
 	if pbevent.Endpoint == "" {

@@ -3,6 +3,7 @@ package dmetering
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 
 	"go.uber.org/zap"
 )
@@ -33,7 +34,17 @@ func RegisterGRPC() {
 			return nil, fmt.Errorf("network not specified (as query param)")
 		}
 
-		return newGRPCEmitter(network, endpoint, logger)
+		bufferSize := 1000 //default
+		bufferSizeVal := vals.Get("buffer")
+		if bufferSizeVal != "" {
+			var err error
+			bufferSize, err = strconv.Atoi(bufferSizeVal)
+			if err != nil {
+				return nil, fmt.Errorf("invalid buffer value: %w", err)
+			}
+		}
+
+		return newGRPCEmitter(network, endpoint, logger, bufferSize)
 	})
 }
 
