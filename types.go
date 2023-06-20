@@ -7,6 +7,7 @@ import (
 
 	"github.com/streamingfast/dgrpc"
 	pbmetering "github.com/streamingfast/dmetering/pb/sf/metering/v1"
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +17,7 @@ type grpcEmitter struct {
 	eventBuffer   chan Event
 	launchCtx     context.Context
 	launchCancel  context.CancelFunc
-	eventsDropped int
+	eventsDropped *atomic.Uint64
 
 	network   string
 	closeFunc CloseFunc
@@ -37,9 +38,10 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 		closeFunc: closeFunc,
 		logger:    logger,
 
-		eventBuffer:  make(chan Event, bufferSize),
-		launchCtx:    launchCtx,
-		launchCancel: launchCancel,
+		eventBuffer:   make(chan Event, bufferSize),
+		launchCtx:     launchCtx,
+		launchCancel:  launchCancel,
+		eventsDropped: atomic.NewUint64(0),
 	}
 
 	go func() {
@@ -60,8 +62,9 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 			case <-e.launchCtx.Done():
 				return
 			case <-time.After(10 * time.Second):
-				if e.eventsDropped > 0 {
-					e.logger.Warn("metering events dropped. consider increasing buffer size", zap.Int("count", e.eventsDropped), zap.Int("current_buffer_size", bufferSize))
+				dropped := e.eventsDropped.Load()
+				if dropped > 0 {
+					e.logger.Warn("metering events dropped. consider increasing buffer size", zap.Uint64("count", dropped), zap.Int("current_buffer_size", bufferSize))
 				}
 			}
 		}
@@ -82,7 +85,7 @@ func (g *grpcEmitter) Emit(_ context.Context, ev Event) {
 	select {
 	case g.eventBuffer <- ev:
 	default:
-		g.eventsDropped++
+		g.eventsDropped.Inc()
 	}
 }
 
