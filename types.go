@@ -80,8 +80,14 @@ func newGRPCEmitter(network string, endpoint string, logger *zap.Logger, bufferS
 }
 
 func (g *grpcEmitter) Close() error {
-	g.logger.Info("giving some time for buffer to clear")
-	<-time.After(5 * time.Second)
+	g.logger.Info("giving some time for metrics buffer to clear")
+	now := time.Now()
+	for len(g.eventBuffer) != 0 {
+		<-time.After(500 * time.Millisecond)
+		if time.Since(now) > time.Second*5 {
+			break
+		}
+	}
 
 	g.launchCancel()
 	return g.closeFunc()
