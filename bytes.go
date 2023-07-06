@@ -93,7 +93,7 @@ func (b *meter) BytesWrittenDelta() uint64 {
 	defer b.mu.Unlock()
 
 	result := b.bytesWrittenDelta
-	b.bytesReadDelta = 0
+	b.bytesWrittenDelta = 0
 	return result
 }
 
