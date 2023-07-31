@@ -19,6 +19,10 @@ func GetBytesMeter(ctx context.Context) Meter {
 
 func WithBytesMeter(ctx context.Context) context.Context {
 	bm := NewBytesMeter()
+	return WithExistingBytesMeter(ctx, bm)
+}
+
+func WithExistingBytesMeter(ctx context.Context, bm Meter) context.Context {
 	return context.WithValue(ctx, contextKey, bm)
 }
 
