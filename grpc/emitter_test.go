@@ -18,16 +18,16 @@ import (
 var zlog, tracer = logging.PackageLogger("dmetring", "github.com/streamingfast/dmetering/grpc.test")
 
 func init() {
-	logging.InstantiateLoggers(logging.WithDefaultLevel(zapcore.InfoLevel))
+	logging.InstantiateLoggers(logging.WithDefaultLevel(zapcore.DebugLevel))
 }
 
 type mockClient struct {
-	batchesInfo []int
-	totalBytes  uint64
+	eventCount int
+	totalBytes uint64
 }
 
 func (c *mockClient) Emit(ctx context.Context, in *pbmetering.Events, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	c.batchesInfo = append(c.batchesInfo, len(in.Events))
+	c.eventCount += len(in.Events)
 	for _, event := range in.Events {
 		c.totalBytes += uint64(event.Metrics[0].Value)
 	}
@@ -60,13 +60,8 @@ func TestAuthenticatorPlugin_ContinuousAuthenticate(t *testing.T) {
 		expectTotalBytes  uint64
 	}{
 		{
-			name:       "sending events",
-			eventCount: 12,
-			expectBatchesInfo: []int{
-				5,
-				5,
-				2,
-			},
+			name:             "sending events",
+			eventCount:       12,
 			expectTotalBytes: 78,
 		},
 	}
@@ -77,7 +72,7 @@ func TestAuthenticatorPlugin_ContinuousAuthenticate(t *testing.T) {
 
 			config := &Config{
 				Endpoint:   "localhost:9000",
-				BatchSize:  5,
+				Delay:      100 * time.Millisecond,
 				BufferSize: 100,
 				Network:    "eth-testnet",
 			}
@@ -90,7 +85,7 @@ func TestAuthenticatorPlugin_ContinuousAuthenticate(t *testing.T) {
 
 			time.Sleep(1 * time.Second)
 			plugin.Shutdown(nil)
-			assert.Equal(t, test.expectBatchesInfo, eventClient.batchesInfo)
+			assert.Equal(t, test.eventCount, eventClient.eventCount)
 			assert.Equal(t, test.expectTotalBytes, eventClient.totalBytes)
 		})
 	}

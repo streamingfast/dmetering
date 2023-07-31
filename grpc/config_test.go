@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,12 +15,12 @@ func TestConfig_new(t *testing.T) {
 		expectError bool
 	}{
 		{
-			dsn: "grpc://localhost:9010?buffer=100000&network=eth-mainnet",
+			dsn: "grpc://localhost:9010?buffer=25&network=eth-mainnet",
 			expect: &Config{
 				Endpoint:   "localhost:9010",
 				Network:    "eth-mainnet",
-				BatchSize:  100,
-				BufferSize: 100000,
+				Delay:      100 * time.Millisecond,
+				BufferSize: 25,
 			},
 		},
 		{
@@ -27,12 +28,20 @@ func TestConfig_new(t *testing.T) {
 			expect: &Config{
 				Endpoint:    "localhost:9010",
 				Network:     "eth-mainnet",
-				BatchSize:   100,
+				Delay:       100 * time.Millisecond,
 				BufferSize:  100000,
 				PanicOnDrop: true,
 			},
 		},
-
+		{
+			dsn: "grpc://localhost:9010?buffer=100000&network=eth-mainnet&delay=250",
+			expect: &Config{
+				Endpoint:   "localhost:9010",
+				Network:    "eth-mainnet",
+				Delay:      250 * time.Millisecond,
+				BufferSize: 100000,
+			},
+		},
 		{
 			dsn:         "grpc:localhost9010?buffer=100000&network=eth-mainnet&panicOnDrop=true",
 			expectError: true,

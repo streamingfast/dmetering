@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/streamingfast/dmetrics"
+
 	"github.com/streamingfast/shutter"
 
 	"github.com/streamingfast/dgrpc"
@@ -66,6 +68,8 @@ func newWithClient(
 
 	go e.launch()
 
+	dmetrics.Register(MetricSet)
+
 	e.OnTerminating(func(err error) {
 		e.logger.Info("received shutdown signal, waiting for launch loop to end", zap.Error(err))
 		<-e.done
@@ -77,18 +81,17 @@ func newWithClient(
 }
 
 func (e *emitter) launch() {
+	ticker := time.NewTicker(e.config.Delay)
 	for {
 		select {
 		case <-e.Terminating():
 			e.done <- true
+		case <-ticker.C:
+			e.logger.Debug("emitting events after ticker delay", zap.Int("count", len(e.activeBatch)))
+			e.emit(e.activeBatch)
+			e.activeBatch = []*pbmetering.Event{}
 		case ev := <-e.buffer:
-			protoEv := ev.ToProto(e.config.Network)
-			if len(e.activeBatch) == int(e.config.BatchSize) {
-				e.emit(e.activeBatch)
-				e.activeBatch = []*pbmetering.Event{protoEv}
-			} else {
-				e.activeBatch = append(e.activeBatch, protoEv)
-			}
+			e.activeBatch = append(e.activeBatch, ev.ToProto(e.config.Network))
 		}
 	}
 }
@@ -136,8 +139,12 @@ func (e *emitter) Emit(_ context.Context, ev dmetering.Event) {
 }
 
 func (e *emitter) emit(events []*pbmetering.Event) {
+	if len(events) == 0 {
+		return
+	}
 	e.logger.Debug("tracking events", zap.Int("count", len(events)))
 	if _, err := e.client.Emit(context.Background(), &pbmetering.Events{Events: events}); err != nil {
+		MeteringGRPCErrCounter.Inc()
 		e.logger.Warn("failed to emit event", zap.Error(err))
 	}
 	return

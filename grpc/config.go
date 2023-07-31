@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 type Config struct {
 	Endpoint    string
-	BatchSize   uint64
+	Delay       time.Duration
 	BufferSize  uint64
 	PanicOnDrop bool
 	Network     string
@@ -16,8 +17,8 @@ type Config struct {
 
 func newConfig(configURL string) (*Config, error) {
 	c := &Config{
-		BatchSize:   100,
-		BufferSize:  1000,
+		Delay:       100 * time.Millisecond,
+		BufferSize:  10000,
 		PanicOnDrop: false,
 	}
 
@@ -37,11 +38,22 @@ func newConfig(configURL string) (*Config, error) {
 		return nil, fmt.Errorf("network not specified (as query param)")
 	}
 
-	if vals.Get("buffer") != "" {
-		c.BufferSize, err = strconv.ParseUint(vals.Get("buffer"), 10, 64)
+	bufferValue := vals.Get("buffer")
+	if bufferValue != "" {
+		c.BufferSize, err = strconv.ParseUint(bufferValue, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("invalid buffer value: %w", err)
+			return nil, fmt.Errorf("invalid buffer value %q: %w", bufferValue, err)
 		}
+	}
+
+	delayValue := vals.Get("delay")
+	if delayValue != "" {
+		delay, err := strconv.ParseInt(delayValue, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid delay value %q: %w", delayValue, err)
+		}
+
+		c.Delay = time.Duration(delay) * time.Millisecond
 	}
 
 	c.PanicOnDrop = vals.Get("panicOnDrop") == "true"
