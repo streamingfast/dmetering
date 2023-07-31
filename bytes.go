@@ -11,18 +11,28 @@ type bytesMeterKey string
 const contextKey = bytesMeterKey("bytesMeter")
 
 func GetBytesMeter(ctx context.Context) Meter {
-	if bm, ok := ctx.Value(contextKey).(Meter); ok {
+	if bm, ok := ctx.Value(contextKey).(Meter); ok && bm != nil {
 		return bm
 	}
+
 	return NoopBytesMeter
 }
 
 func WithBytesMeter(ctx context.Context) context.Context {
+	//check if meter already exists and that it is not nil or a noop
+	if bm, ok := ctx.Value(contextKey).(Meter); ok && bm != nil && bm != NoopBytesMeter {
+		return ctx
+	}
+
 	bm := NewBytesMeter()
 	return WithExistingBytesMeter(ctx, bm)
 }
 
 func WithExistingBytesMeter(ctx context.Context, bm Meter) context.Context {
+	if bm == nil {
+		return ctx
+	}
+
 	return context.WithValue(ctx, contextKey, bm)
 }
 
