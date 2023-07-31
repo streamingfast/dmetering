@@ -8,7 +8,11 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service Metering {
-  rpc Emit(Event) returns (google.protobuf.Empty) {}
+  rpc Emit(Events) returns (google.protobuf.Empty) {}
+}
+
+message Events {
+  repeated Event events = 1;
 }
 
 message Event {
