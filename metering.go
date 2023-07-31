@@ -64,10 +64,8 @@ func (ev Event) ToProto(network string) *pbmetering.Event {
 	return pbev
 }
 
-type CloseFunc func() error
-
 type EventEmitter interface {
-	Close() error
+	Shutdown(error)
 	Emit(ctx context.Context, ev Event)
 }
 
