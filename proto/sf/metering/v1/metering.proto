@@ -17,7 +17,7 @@ message Events {
 
 message Event {
   string user_id = 1;
-  string api_key_id  = 2;
+  string api_key_id = 2;
   string ip_address = 3;
 
   // Defines the endpoint that emitted the event (sf.firehose.v1/Blocks ...)
@@ -25,6 +25,8 @@ message Event {
 
   // Defines the blockchain (eth-mainnet, sol-mainnet ...)
   string network = 5;
+
+  string trace_id = 6;
 
   string meta = 7;
 
