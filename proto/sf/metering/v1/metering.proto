@@ -26,6 +26,8 @@ message Event {
   // Defines the blockchain (eth-mainnet, sol-mainnet ...)
   string network = 5;
 
+  string meta = 7;
+
   repeated Metric metrics = 20;
 
   google.protobuf.Timestamp timestamp = 30;

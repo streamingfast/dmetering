@@ -47,6 +47,7 @@ func newEvent(metricsKey string, metricsValue float64) dmetering.Event {
 		UserID:    "0bizy1111111111111111",
 		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
 		IpAddress: "192.168.1.1",
+		Meta:      "test",
 		Timestamp: time.Now(),
 	}
 }
