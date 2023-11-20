@@ -20,6 +20,8 @@ type Event struct {
 	ApiKeyID  string `json:"api_key_id"`
 	IpAddress string `json:"ip_address"`
 
+	Meta string `json:"meta"`
+
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -52,6 +54,7 @@ func (ev Event) ToProto(network string) *pbmetering.Event {
 	pbev.UserId = ev.UserID
 	pbev.ApiKeyId = ev.ApiKeyID
 	pbev.IpAddress = ev.IpAddress
+	pbev.Meta = ev.Meta
 
 	pbev.Metrics = []*pbmetering.Metric{}
 	for k, v := range ev.Metrics {
