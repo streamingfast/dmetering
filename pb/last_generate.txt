@@ -1,2 +1,2 @@
-generate.sh - Fri Nov 17 10:25:51 CET 2023 - fred
-streamingfast/proto revision: d679ab21d7ff7f59eff8eb89611529eab7350767
+generate.sh - Tue Feb  6 15:42:20 CET 2024 - fred
+streamingfast/proto revision: 56cb133250ea92a16d3edd4a0afbf1c4f8a9331e
