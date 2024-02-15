@@ -4,6 +4,12 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	"github.com/streamingfast/logging"
+	tracing "github.com/streamingfast/sf-tracing"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type bytesMeterKey string
@@ -39,6 +45,9 @@ func WithExistingBytesMeter(ctx context.Context, bm Meter) context.Context {
 type Meter interface {
 	AddBytesWritten(n int)
 	AddBytesRead(n int)
+
+	AddBytesWrittenCtx(ctx context.Context, n int)
+	AddBytesReadCtx(ctx context.Context, n int)
 
 	BytesWritten() uint64
 	BytesRead() uint64
@@ -80,12 +89,29 @@ func (b *meter) AddBytesWritten(n int) {
 	b.bytesWritten += uint64(n)
 }
 
+type mode string
+
+const (
+	modeRead  mode = "read"
+	modeWrite mode = "write"
+)
+
 func (b *meter) AddBytesRead(n int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	b.bytesReadDelta += uint64(n)
 	b.bytesRead += uint64(n)
+}
+
+func (b *meter) AddBytesWrittenCtx(ctx context.Context, n int) {
+	logDataFromCtx(ctx, n, modeWrite)
+	b.AddBytesWritten(n)
+}
+
+func (b *meter) AddBytesReadCtx(ctx context.Context, n int) {
+	logDataFromCtx(ctx, n, modeRead)
+	b.AddBytesRead(n)
 }
 
 func (b *meter) BytesWritten() uint64 {
@@ -122,11 +148,76 @@ func (b *meter) BytesReadDelta() uint64 {
 
 type noopMeter struct{}
 
-func (_ *noopMeter) AddBytesWritten(n int)     { return }
-func (_ *noopMeter) AddBytesRead(n int)        { return }
-func (_ *noopMeter) BytesWritten() uint64      { return 0 }
-func (_ *noopMeter) BytesRead() uint64         { return 0 }
-func (_ *noopMeter) BytesWrittenDelta() uint64 { return 0 }
-func (_ *noopMeter) BytesReadDelta() uint64    { return 0 }
+func (_ *noopMeter) AddBytesWritten(n int)                         { return }
+func (_ *noopMeter) AddBytesRead(n int)                            { return }
+func (_ *noopMeter) AddBytesWrittenCtx(ctx context.Context, n int) {}
+func (_ *noopMeter) AddBytesReadCtx(ctx context.Context, n int)    {}
+func (_ *noopMeter) BytesWritten() uint64                          { return 0 }
+func (_ *noopMeter) BytesRead() uint64                             { return 0 }
+func (_ *noopMeter) BytesWrittenDelta() uint64                     { return 0 }
+func (_ *noopMeter) BytesReadDelta() uint64                        { return 0 }
 
 var NoopBytesMeter Meter = &noopMeter{}
+
+type MeterLogData struct {
+	Filename *string
+	Store    *string
+	TraceId  *string
+	Mode     mode
+	NBytes   int
+}
+
+func (mld *MeterLogData) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	if mld.Filename != nil {
+		enc.AddString("file", *mld.Filename)
+	}
+	if mld.Store != nil {
+		enc.AddString("store", *mld.Store)
+	}
+	if mld.TraceId != nil {
+		enc.AddString("trace_id", *mld.TraceId)
+	}
+	enc.AddString("mode", string(mld.Mode))
+	enc.AddInt("bytes", mld.NBytes)
+
+	return nil
+}
+
+func logDataFromCtx(ctx context.Context, nBytes int, mode mode) {
+	var logger *zap.Logger
+	if val, ok := ctx.Value("logger").(*zap.Logger); ok {
+		logger = val
+	} else {
+		return
+	}
+
+	var tracer logging.Tracer
+	if val, ok := ctx.Value("tracer").(logging.Tracer); ok {
+		tracer = val
+	} else {
+		return
+	}
+
+	var filename, store, traceId *string
+	if val, ok := ctx.Value("file").(string); ok {
+		filename = &val
+	}
+	if val, ok := ctx.Value("store").(string); ok {
+		store = &val
+	}
+
+	traceIdVal := tracing.GetTraceID(ctx).String()
+	traceId = &traceIdVal
+
+	mld := &MeterLogData{
+		Filename: filename,
+		Store:    store,
+		TraceId:  traceId,
+		Mode:     mode,
+		NBytes:   nBytes,
+	}
+
+	if tracer.Enabled() {
+		logger.Debug("bytes metering", zap.Object("meterLogData", mld))
+	}
+}
