@@ -19,6 +19,7 @@ type Event struct {
 	UserID    string `json:"user_id"`
 	ApiKeyID  string `json:"api_key_id"`
 	IpAddress string `json:"ip_address"`
+	TraceId   string `json:"trace_id"`
 
 	Meta string `json:"meta"`
 
@@ -34,6 +35,9 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	}
 	if ev.IpAddress != "" {
 		enc.AddString("ip_address", ev.IpAddress)
+	}
+	if ev.TraceId != "" {
+		enc.AddString("trace_id", ev.TraceId)
 	}
 
 	enc.AddString("endpoint", ev.Endpoint)
@@ -54,6 +58,7 @@ func (ev Event) ToProto(network string) *pbmetering.Event {
 	pbev.UserId = ev.UserID
 	pbev.ApiKeyId = ev.ApiKeyID
 	pbev.IpAddress = ev.IpAddress
+	pbev.TraceId = ev.TraceId
 	pbev.Meta = ev.Meta
 
 	pbev.Metrics = []*pbmetering.Metric{}
