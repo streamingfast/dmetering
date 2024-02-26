@@ -34,6 +34,12 @@ func WithBytesMeter(ctx context.Context) context.Context {
 	return WithExistingBytesMeter(ctx, bm)
 }
 
+func WithCounter(ctx context.Context, name string) context.Context {
+	bm := GetBytesMeter(ctx)
+	bm.AddCounter(name)
+	return WithExistingBytesMeter(ctx, bm)
+}
+
 func WithExistingBytesMeter(ctx context.Context, bm Meter) context.Context {
 	if bm == nil {
 		return ctx

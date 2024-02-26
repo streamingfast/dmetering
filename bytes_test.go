@@ -37,6 +37,20 @@ func TestMeter_BytesReadDelta(t *testing.T) {
 	}
 }
 
+func TestWithCounter(t *testing.T) {
+	meter := NewBytesMeter()
+	ctx := WithExistingBytesMeter(context.Background(), meter)
+	ctx = WithCounter(ctx, "test")
+
+	bm := GetBytesMeter(ctx)
+	bm.CountInc("test", 10)
+
+	c := meter.GetCount("test")
+	if c != 10 {
+		t.Errorf("expected 10, got %d", c)
+	}
+}
+
 func TestWithBytesMeter(t *testing.T) {
 	ctx := WithBytesMeter(context.Background())
 	if GetBytesMeter(ctx) == nil {
