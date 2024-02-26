@@ -54,6 +54,12 @@ type Meter interface {
 
 	BytesWrittenDelta() uint64
 	BytesReadDelta() uint64
+
+	AddCounter(name string)
+	CountInc(name string, n int)
+	CountDec(name string, n int)
+	GetCount(name string) int
+	ResetCount(name string)
 }
 
 type meter struct {
@@ -62,6 +68,8 @@ type meter struct {
 
 	bytesWrittenDelta uint64
 	bytesReadDelta    uint64
+
+	counterMap map[string]int
 
 	mu sync.RWMutex
 }
@@ -146,8 +154,66 @@ func (b *meter) BytesReadDelta() uint64 {
 	return result
 }
 
+func (b *meter) AddCounter(name string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	if b.counterMap == nil {
+		b.counterMap = make(map[string]int)
+	}
+
+	if _, ok := b.counterMap[name]; ok {
+		return
+	}
+
+	b.counterMap[name] = 0
+}
+
+func (b *meter) CountInc(name string, n int) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	if _, ok := b.counterMap[name]; !ok {
+		return
+	}
+
+	b.counterMap[name] += n
+}
+
+func (b *meter) CountDec(name string, n int) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	if _, ok := b.counterMap[name]; !ok {
+		return
+	}
+
+	b.counterMap[name] -= n
+}
+
+func (b *meter) GetCount(name string) int {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+
+	if val, ok := b.counterMap[name]; ok {
+		return val
+	}
+
+	return 0
+}
+
+func (b *meter) ResetCount(name string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	if _, ok := b.counterMap[name]; ok {
+		delete(b.counterMap, name)
+	}
+}
+
 type noopMeter struct{}
 
+func (_ *noopMeter) ResetCount(name string)                        { return }
 func (_ *noopMeter) AddBytesWritten(n int)                         { return }
 func (_ *noopMeter) AddBytesRead(n int)                            { return }
 func (_ *noopMeter) AddBytesWrittenCtx(ctx context.Context, n int) {}
@@ -156,6 +222,10 @@ func (_ *noopMeter) BytesWritten() uint64                          { return 0 }
 func (_ *noopMeter) BytesRead() uint64                             { return 0 }
 func (_ *noopMeter) BytesWrittenDelta() uint64                     { return 0 }
 func (_ *noopMeter) BytesReadDelta() uint64                        { return 0 }
+func (_ *noopMeter) AddCounter(name string)                        { return }
+func (_ *noopMeter) CountInc(name string, n int)                   { return }
+func (_ *noopMeter) CountDec(name string, n int)                   { return }
+func (_ *noopMeter) GetCount(name string) int                      { return 0 }
 
 var NoopBytesMeter Meter = &noopMeter{}
 
