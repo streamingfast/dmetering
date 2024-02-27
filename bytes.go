@@ -179,6 +179,10 @@ func (b *meter) CountInc(name string, n int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	if b.counterMap == nil {
+		b.counterMap = make(map[string]int)
+	}
+
 	if _, ok := b.counterMap[name]; !ok {
 		b.counterMap[name] = 0
 	}
@@ -189,6 +193,10 @@ func (b *meter) CountInc(name string, n int) {
 func (b *meter) CountDec(name string, n int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if b.counterMap == nil {
+		b.counterMap = make(map[string]int)
+	}
 
 	if _, ok := b.counterMap[name]; !ok {
 		b.counterMap[name] = 0
@@ -201,6 +209,10 @@ func (b *meter) GetCount(name string) int {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
+	if b.counterMap == nil {
+		b.counterMap = make(map[string]int)
+	}
+
 	if val, ok := b.counterMap[name]; ok {
 		return val
 	}
@@ -211,6 +223,10 @@ func (b *meter) GetCount(name string) int {
 func (b *meter) ResetCount(name string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if b.counterMap == nil {
+		b.counterMap = make(map[string]int)
+	}
 
 	if _, ok := b.counterMap[name]; ok {
 		b.counterMap[name] = 0
