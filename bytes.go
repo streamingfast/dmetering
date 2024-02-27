@@ -180,7 +180,7 @@ func (b *meter) CountInc(name string, n int) {
 	defer b.mu.Unlock()
 
 	if _, ok := b.counterMap[name]; !ok {
-		return
+		b.counterMap[name] = 0
 	}
 
 	b.counterMap[name] += n
@@ -191,7 +191,7 @@ func (b *meter) CountDec(name string, n int) {
 	defer b.mu.Unlock()
 
 	if _, ok := b.counterMap[name]; !ok {
-		return
+		b.counterMap[name] = 0
 	}
 
 	b.counterMap[name] -= n
@@ -213,8 +213,10 @@ func (b *meter) ResetCount(name string) {
 	defer b.mu.Unlock()
 
 	if _, ok := b.counterMap[name]; ok {
-		delete(b.counterMap, name)
+		b.counterMap[name] = 0
 	}
+
+	return
 }
 
 type noopMeter struct{}
