@@ -23,6 +23,13 @@ type Event struct {
 	Meta string `json:"meta"`
 
 	Timestamp time.Time `json:"timestamp"`
+
+	network string `json:"-"`
+}
+
+func (ev Event) WithNetwork(network string) Event {
+	ev.network = network
+	return ev
 }
 
 func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
@@ -49,7 +56,11 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 func (ev Event) ToProto(network string) *pbmetering.Event {
 	pbev := new(pbmetering.Event)
 	pbev.Endpoint = ev.Endpoint
-	pbev.Network = network
+	if ev.network != "" {
+		pbev.Network = ev.network
+	} else {
+		pbev.Network = network
+	}
 	pbev.Timestamp = timestamppb.New(ev.Timestamp)
 	pbev.UserId = ev.UserID
 	pbev.ApiKeyId = ev.ApiKeyID
