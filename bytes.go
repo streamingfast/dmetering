@@ -312,6 +312,6 @@ func logDataFromCtx(ctx context.Context, nBytes int, mode mode) {
 	}
 
 	if tracer.Enabled() {
-		logger.Debug("bytes metering", zap.Object("meterLogData", mld))
+		logger.Debug("bytes metering", zap.Object("meter_log_data", mld))
 	}
 }
