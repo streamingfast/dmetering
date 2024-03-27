@@ -60,39 +60,3 @@ func TestConfig_new(t *testing.T) {
 		})
 	}
 }
-
-func TestNetwork(t *testing.T) {
-	tests := []struct {
-		config  Config
-		network string
-		expect  string
-	}{
-		{
-			config: Config{
-				Network: "eth-mainnet",
-			},
-			network: "eth-mainnet",
-			expect:  "eth-mainnet",
-		},
-		{
-			config: Config{
-				Network: "eth-ropsten",
-			},
-			network: "eth-ropsten",
-			expect:  "eth-ropsten",
-		},
-		{
-			config: Config{
-				Network: "eth-mainnet",
-			},
-			network: "",
-			expect:  "eth-mainnet",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.expect, func(t *testing.T) {
-			assert.Equal(t, test.expect, test.config.Network)
-		})
-	}
-}

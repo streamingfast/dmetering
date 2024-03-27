@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/streamingfast/dmetrics"
+
+	"github.com/streamingfast/shutter"
+
 	"github.com/streamingfast/dgrpc"
 	"github.com/streamingfast/dmetering"
-	meteringContext "github.com/streamingfast/dmetering/context"
 	pbmetering "github.com/streamingfast/dmetering/pb/sf/metering/v1"
-	"github.com/streamingfast/dmetrics"
-	"github.com/streamingfast/shutter"
 	"go.uber.org/zap"
 )
 
@@ -37,10 +38,6 @@ type emitter struct {
 	done            chan bool
 
 	logger *zap.Logger
-}
-
-func (e *emitter) Network() string {
-	return e.config.Network
 }
 
 func new(config *Config, logger *zap.Logger) (dmetering.EventEmitter, error) {
@@ -120,19 +117,10 @@ func (e *emitter) flushAndCloseEvent() {
 	}
 }
 
-func (e *emitter) Emit(ctx context.Context, ev dmetering.Event) {
+func (e *emitter) Emit(_ context.Context, ev dmetering.Event) {
 	if ev.Endpoint == "" {
 		e.logger.Warn("events must contain endpoint, dropping event", zap.Object("event", ev))
 		return
-	}
-
-	if e.config.Network == "multi" || e.config.Network == "" {
-		network := meteringContext.GetNetwork(ctx)
-		if network == "" {
-			e.logger.Warn("events must contain network, dropping event", zap.Object("event", ev))
-			return
-		}
-		ev = ev.WithNetwork(network)
 	}
 
 	if e.IsTerminating() {
