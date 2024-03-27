@@ -10,6 +10,10 @@ func SetDefaultEmitter(m EventEmitter) {
 	defaultMeter = m
 }
 
+func GetDefaultEmitter() EventEmitter {
+	return defaultMeter
+}
+
 func Emit(ctx context.Context, event Event) {
 	defaultMeter.Emit(ctx, event)
 }
