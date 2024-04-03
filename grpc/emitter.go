@@ -66,8 +66,6 @@ func newWithClient(
 		logger:          logger.Named("metrics.emitter"),
 	}
 
-	go e.launch()
-
 	dmetrics.Register(MetricSet)
 
 	e.OnTerminating(func(err error) {
@@ -77,6 +75,8 @@ func newWithClient(
 		e.clientCloseFunc()
 
 	})
+	go e.launch()
+
 	return e, nil
 }
 
@@ -86,6 +86,7 @@ func (e *emitter) launch() {
 		select {
 		case <-e.Terminating():
 			e.done <- true
+			return
 		case <-ticker.C:
 			e.logger.Debug("emitting events after ticker delay", zap.Int("count", len(e.activeBatch)))
 			e.emit(e.activeBatch)
