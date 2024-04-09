@@ -88,7 +88,7 @@ func (e *emitter) launch() {
 			e.done <- true
 			return
 		case <-ticker.C:
-			e.logger.Debug("emitting events after ticker delay", zap.Int("count", len(e.activeBatch)))
+			//e.logger.Debug("emitting events after ticker delay", zap.Int("count", len(e.activeBatch)))
 			e.emit(e.activeBatch)
 			e.activeBatch = []*pbmetering.Event{}
 		case ev := <-e.buffer:
