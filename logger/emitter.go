@@ -9,7 +9,7 @@ import (
 
 func Register() {
 	dmetering.Register("logger", func(_ string, logger *zap.Logger) (dmetering.EventEmitter, error) {
-		return new(logger), nil
+		return newEmitter(logger), nil
 	})
 }
 
@@ -23,7 +23,7 @@ func (l *emitter) Emit(_ context.Context, event dmetering.Event) {
 
 func (l *emitter) Shutdown(error) {}
 
-func new(logger *zap.Logger) dmetering.EventEmitter {
+func newEmitter(logger *zap.Logger) dmetering.EventEmitter {
 	return &emitter{
 		logger: logger,
 	}

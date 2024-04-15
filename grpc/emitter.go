@@ -21,7 +21,7 @@ func Register() {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse config string %s: %w", config, err)
 		}
-		return new(c, logger)
+		return newEmitter(c, logger)
 	})
 }
 
@@ -40,7 +40,7 @@ type emitter struct {
 	logger *zap.Logger
 }
 
-func new(config *Config, logger *zap.Logger) (dmetering.EventEmitter, error) {
+func newEmitter(config *Config, logger *zap.Logger) (dmetering.EventEmitter, error) {
 	client, closeFunc, err := newMeteringClient(config.Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create external gRPC client %w", err)
@@ -72,8 +72,10 @@ func newWithClient(
 		e.logger.Info("received shutdown signal, waiting for launch loop to end", zap.Error(err))
 		<-e.done
 		e.flushAndCloseEvent()
-		e.clientCloseFunc()
-
+		closeErr := e.clientCloseFunc()
+		if closeErr != nil {
+			e.logger.Warn("failed to close grpc client", zap.Error(closeErr))
+		}
 	})
 	go e.launch()
 

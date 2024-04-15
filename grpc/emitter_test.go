@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var zlog, tracer = logging.PackageLogger("dmetring", "github.com/streamingfast/dmetering/grpc.test")
+var zlog, tracer = logging.PackageLogger("dmetering", "github.com/streamingfast/dmetering/grpc.test")
 
 func init() {
 	logging.InstantiateLoggers(logging.WithDefaultLevel(zapcore.DebugLevel))
