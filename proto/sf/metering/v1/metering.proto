@@ -28,6 +28,11 @@ message Event {
 
   string meta = 7;
 
+  // Provider is a free-form string containing the identity data of the entity
+  // that processed this event. Currently use to identify which indexer actually
+  // produced the event for billing purposes.
+  string provider = 8;
+
   repeated Metric metrics = 20;
 
   google.protobuf.Timestamp timestamp = 30;
