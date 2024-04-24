@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/streamingfast/dmetrics"
-
-	"github.com/streamingfast/shutter"
-
 	"github.com/streamingfast/dgrpc"
 	"github.com/streamingfast/dmetering"
 	pbmetering "github.com/streamingfast/dmetering/pb/sf/metering/v1"
+	"github.com/streamingfast/dmetrics"
+	"github.com/streamingfast/shutter"
 	"go.uber.org/zap"
 )
 
