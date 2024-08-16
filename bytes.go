@@ -65,6 +65,7 @@ type Meter interface {
 	CountInc(name string, n int)
 	CountDec(name string, n int)
 	GetCount(name string) int
+	GetCountAndReset(name string) int
 	ResetCount(name string)
 }
 
@@ -220,6 +221,22 @@ func (b *meter) GetCount(name string) int {
 	return 0
 }
 
+func (b *meter) GetCountAndReset(name string) int {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	if b.counterMap == nil {
+		b.counterMap = make(map[string]int)
+	}
+
+	if val, ok := b.counterMap[name]; ok {
+		b.counterMap[name] = 0
+		return val
+	}
+
+	return 0
+}
+
 func (b *meter) ResetCount(name string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -250,6 +267,7 @@ func (_ *noopMeter) AddCounter(name string)                        { return }
 func (_ *noopMeter) CountInc(name string, n int)                   { return }
 func (_ *noopMeter) CountDec(name string, n int)                   { return }
 func (_ *noopMeter) GetCount(name string) int                      { return 0 }
+func (_ *noopMeter) GetCountAndReset(name string) int              { return 0 }
 
 var NoopBytesMeter Meter = &noopMeter{}
 
