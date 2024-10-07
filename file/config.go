@@ -11,6 +11,7 @@ type Config struct {
 	BasePath             string
 	BufferSize           uint64
 	FlushIntervalSeconds int
+	Source               string
 }
 
 func newConfig(configURL string) (*Config, error) {
@@ -52,6 +53,8 @@ func newConfig(configURL string) (*Config, error) {
 	if c.Network == "" {
 		return nil, fmt.Errorf("network not specified (as query param)")
 	}
+
+	c.Source = vals.Get("source")
 
 	return c, nil
 }

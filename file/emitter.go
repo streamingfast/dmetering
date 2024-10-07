@@ -134,5 +134,10 @@ func (e *emitter) flush() error {
 }
 
 func (e *emitter) fileName() string {
-	return filepath.Join(e.config.BasePath, fmt.Sprintf("events_%d.jsonl", time.Now().Unix()))
+	source := e.config.Source
+	if e.config.Source == "" {
+		e.config.Source = "unknown"
+	}
+
+	return filepath.Join(e.config.BasePath, fmt.Sprintf("events_%s_%d.jsonl", source, time.Now().Unix()))
 }
