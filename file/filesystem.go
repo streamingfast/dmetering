@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -42,6 +43,12 @@ func (OSFS) Open(name string) (File, error) {
 }
 
 func (OSFS) Create(name string) (File, error) {
+	//create full path to file if it does not exist
+	err := os.MkdirAll(filepath.Dir(name), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
 	return os.Create(name)
 }
 
