@@ -33,7 +33,7 @@ message Event {
   // produced the event for billing purposes.
   string provider = 8;
 
-  string output_hash = 9;
+  string output_module_hash = 9;
 
   repeated Metric metrics = 20;
 
