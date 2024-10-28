@@ -33,6 +33,8 @@ message Event {
   // produced the event for billing purposes.
   string provider = 8;
 
+  string output_hash = 9;
+
   repeated Metric metrics = 20;
 
   google.protobuf.Timestamp timestamp = 30;

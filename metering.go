@@ -13,8 +13,9 @@ import (
 )
 
 type Event struct {
-	Endpoint string             `json:"endpoint"`
-	Metrics  map[string]float64 `json:"metrics,omitempty"`
+	Endpoint   string             `json:"endpoint"`
+	Metrics    map[string]float64 `json:"metrics,omitempty"`
+	OutputHash string             `json:"output_hash,omitempty"`
 
 	UserID    string `json:"user_id"`
 	ApiKeyID  string `json:"api_key_id"`
