@@ -51,6 +51,7 @@ func (ev Event) ToProto(network string) *pbmetering.Event {
 	pbev := new(pbmetering.Event)
 	pbev.Endpoint = ev.Endpoint
 	pbev.Network = network
+	pbev.OutputModuleHash = ev.OutputModuleHash
 	pbev.Timestamp = timestamppb.New(ev.Timestamp)
 	pbev.UserId = ev.UserID
 	pbev.ApiKeyId = ev.ApiKeyID
