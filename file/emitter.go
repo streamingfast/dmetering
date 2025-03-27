@@ -81,7 +81,7 @@ func (e *emitter) launch() {
 				e.logger.Error("failed to flush", zap.Error(err))
 			}
 		case ev := <-e.buffer:
-			e.activeBatch = append(e.activeBatch, ev.ToProto(e.config.Network))
+			e.activeBatch = append(e.activeBatch, ev.ToProto())
 		}
 	}
 }

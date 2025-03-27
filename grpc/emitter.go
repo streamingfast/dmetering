@@ -92,7 +92,7 @@ func (e *emitter) launch() {
 			e.emit(e.activeBatch)
 			e.activeBatch = []*pbmetering.Event{}
 		case ev := <-e.buffer:
-			e.activeBatch = append(e.activeBatch, ev.ToProto(e.config.Network))
+			e.activeBatch = append(e.activeBatch, ev.ToProto())
 		}
 	}
 }
@@ -108,7 +108,7 @@ func (e *emitter) flushAndCloseEvent() {
 
 	for {
 		ev, ok := <-e.buffer
-		protoEv := ev.ToProto(e.config.Network)
+		protoEv := ev.ToProto()
 		if !ok {
 			e.logger.Info("sending last events", zap.Int("count", len(e.activeBatch)))
 			e.emit(e.activeBatch)
@@ -121,6 +121,14 @@ func (e *emitter) flushAndCloseEvent() {
 func (e *emitter) Emit(_ context.Context, ev dmetering.Event) {
 	if ev.Endpoint == "" {
 		e.logger.Warn("events must contain endpoint, dropping event", zap.Object("event", ev))
+		return
+	}
+
+	if e.config.Network != "" {
+		ev.Network = e.config.Network
+	}
+	if ev.Network == "" {
+		e.logger.Warn("network needs to be configured globally or events must contain network , dropping event", zap.Object("event", ev))
 		return
 	}
 
