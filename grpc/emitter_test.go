@@ -159,3 +159,32 @@ func TestNetworkIncluded(t *testing.T) {
 	assert.Equal(t, 1, len(eventClient.eventsReceived))
 	assert.Equal(t, "eth-mainnet", eventClient.eventsReceived[0].Network)
 }
+
+func TestNetworkMissing(t *testing.T) {
+
+	ctx := context.Background()
+	eventClient := &mockClient{}
+
+	config := &Config{
+		Endpoint:   "localhost:9000",
+		Delay:      100 * time.Millisecond,
+		BufferSize: 100,
+	}
+	plugin, err := newWithClient(config, eventClient, eventClient.Close, zlog)
+	require.NoError(t, err)
+
+	plugin.Emit(ctx, dmetering.Event{
+		Endpoint: "sf.firehose.v1/Blocks",
+		Metrics: map[string]float64{
+			"requests": 1,
+		},
+		UserID:    "0bizy1111111111111111",
+		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress: "192.168.1.1",
+		Meta:      "test",
+		Timestamp: time.Now(),
+	})
+
+	plugin.Shutdown(nil)
+	assert.Equal(t, 0, len(eventClient.eventsReceived))
+}
