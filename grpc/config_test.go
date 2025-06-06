@@ -43,6 +43,14 @@ func TestConfig_new(t *testing.T) {
 			},
 		},
 		{
+			dsn: "grpc://localhost:9010?buffer=100000&delay=250",
+			expect: &Config{
+				Endpoint:   "localhost:9010",
+				Delay:      250 * time.Millisecond,
+				BufferSize: 100000,
+			},
+		},
+		{
 			dsn:         "grpc:localhost9010?buffer=100000&network=eth-mainnet&panicOnDrop=true",
 			expectError: true,
 		},
