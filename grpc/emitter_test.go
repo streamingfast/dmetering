@@ -22,8 +22,9 @@ func init() {
 }
 
 type mockClient struct {
-	eventCount int
-	totalBytes uint64
+	eventCount     int
+	totalBytes     uint64
+	eventsReceived []*pbmetering.Event
 }
 
 func (c *mockClient) Emit(ctx context.Context, in *pbmetering.Events, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -31,6 +32,10 @@ func (c *mockClient) Emit(ctx context.Context, in *pbmetering.Events, opts ...gr
 	for _, event := range in.Events {
 		c.totalBytes += uint64(event.Metrics[0].Value)
 	}
+	if c.eventsReceived == nil {
+		c.eventsReceived = make([]*pbmetering.Event, 0)
+	}
+	c.eventsReceived = append(c.eventsReceived, in.Events...)
 	return nil, nil
 }
 
@@ -90,4 +95,96 @@ func TestAuthenticatorPlugin_ContinuousAuthenticate(t *testing.T) {
 			assert.Equal(t, test.expectTotalBytes, eventClient.totalBytes)
 		})
 	}
+}
+
+func TestNetworkOverride(t *testing.T) {
+
+	ctx := context.Background()
+	eventClient := &mockClient{}
+
+	config := &Config{
+		Endpoint:   "localhost:9000",
+		Delay:      100 * time.Millisecond,
+		BufferSize: 100,
+		Network:    "eth-testnet",
+	}
+	plugin, err := newWithClient(config, eventClient, eventClient.Close, zlog)
+	require.NoError(t, err)
+
+	plugin.Emit(ctx, dmetering.Event{
+		Endpoint: "sf.firehose.v1/Blocks",
+		Metrics: map[string]float64{
+			"requests": 1,
+		},
+		UserID:    "0bizy1111111111111111",
+		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress: "192.168.1.1",
+		Network:   "eth-mainnet",
+		Meta:      "test",
+		Timestamp: time.Now(),
+	})
+
+	plugin.Shutdown(nil)
+	assert.Equal(t, 1, len(eventClient.eventsReceived))
+	assert.Equal(t, "eth-testnet", eventClient.eventsReceived[0].Network)
+}
+
+func TestNetworkIncluded(t *testing.T) {
+
+	ctx := context.Background()
+	eventClient := &mockClient{}
+
+	config := &Config{
+		Endpoint:   "localhost:9000",
+		Delay:      100 * time.Millisecond,
+		BufferSize: 100,
+	}
+	plugin, err := newWithClient(config, eventClient, eventClient.Close, zlog)
+	require.NoError(t, err)
+
+	plugin.Emit(ctx, dmetering.Event{
+		Endpoint: "sf.firehose.v1/Blocks",
+		Metrics: map[string]float64{
+			"requests": 1,
+		},
+		UserID:    "0bizy1111111111111111",
+		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress: "192.168.1.1",
+		Network:   "eth-mainnet",
+		Meta:      "test",
+		Timestamp: time.Now(),
+	})
+
+	plugin.Shutdown(nil)
+	assert.Equal(t, 1, len(eventClient.eventsReceived))
+	assert.Equal(t, "eth-mainnet", eventClient.eventsReceived[0].Network)
+}
+
+func TestNetworkMissing(t *testing.T) {
+
+	ctx := context.Background()
+	eventClient := &mockClient{}
+
+	config := &Config{
+		Endpoint:   "localhost:9000",
+		Delay:      100 * time.Millisecond,
+		BufferSize: 100,
+	}
+	plugin, err := newWithClient(config, eventClient, eventClient.Close, zlog)
+	require.NoError(t, err)
+
+	plugin.Emit(ctx, dmetering.Event{
+		Endpoint: "sf.firehose.v1/Blocks",
+		Metrics: map[string]float64{
+			"requests": 1,
+		},
+		UserID:    "0bizy1111111111111111",
+		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress: "192.168.1.1",
+		Meta:      "test",
+		Timestamp: time.Now(),
+	})
+
+	plugin.Shutdown(nil)
+	assert.Equal(t, 0, len(eventClient.eventsReceived))
 }

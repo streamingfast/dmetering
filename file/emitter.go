@@ -81,7 +81,7 @@ func (e *emitter) launch() {
 				e.logger.Error("failed to flush", zap.Error(err))
 			}
 		case ev := <-e.buffer:
-			e.activeBatch = append(e.activeBatch, ev.ToProto(e.config.Network))
+			e.activeBatch = append(e.activeBatch, ev.ToProto())
 		}
 	}
 }
@@ -90,6 +90,10 @@ func (e *emitter) Emit(_ context.Context, ev dmetering.Event) {
 	if e.IsTerminating() {
 		e.logger.Warn("emitter is shutting down cannot track event", zap.Object("event", ev))
 		return
+	}
+
+	if e.config.Network != "" {
+		ev.Network = e.config.Network
 	}
 
 	select {

@@ -31,6 +31,14 @@ func TestConfig_new(t *testing.T) {
 				BufferSize:           25,
 			},
 		},
+		{
+			dsn: "file:///tmp/test?buffer=25&flushIntervalSeconds=10",
+			expect: &Config{
+				BasePath:             "/tmp/test",
+				FlushIntervalSeconds: 10,
+				BufferSize:           25,
+			},
+		},
 	}
 
 	for _, test := range tests {

@@ -34,9 +34,6 @@ func newConfig(configURL string) (*Config, error) {
 
 	vals := u.Query()
 	c.Network = vals.Get("network")
-	if c.Network == "" {
-		return nil, fmt.Errorf("network not specified (as query param)")
-	}
 
 	bufferValue := vals.Get("buffer")
 	if bufferValue != "" {

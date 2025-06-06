@@ -14,6 +14,7 @@ import (
 
 type Event struct {
 	Endpoint         string             `json:"endpoint"`
+	Network          string             `json:"network"` // can be omitted if the emitter is set up with a global network config
 	Metrics          map[string]float64 `json:"metrics,omitempty"`
 	OutputModuleHash string             `json:"output_module_hash,omitempty"` //substreams-only field
 
@@ -38,6 +39,7 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	}
 
 	enc.AddString("endpoint", ev.Endpoint)
+	enc.AddString("network", ev.Network)
 	enc.AddTime("timestamp", ev.Timestamp)
 
 	for k, v := range ev.Metrics {
@@ -47,10 +49,10 @@ func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
-func (ev Event) ToProto(network string) *pbmetering.Event {
+func (ev Event) ToProto() *pbmetering.Event {
 	pbev := new(pbmetering.Event)
 	pbev.Endpoint = ev.Endpoint
-	pbev.Network = network
+	pbev.Network = ev.Network
 	pbev.OutputModuleHash = ev.OutputModuleHash
 	pbev.Timestamp = timestamppb.New(ev.Timestamp)
 	pbev.UserId = ev.UserID
