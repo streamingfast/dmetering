@@ -92,6 +92,10 @@ func (e *emitter) Emit(_ context.Context, ev dmetering.Event) {
 		return
 	}
 
+	if e.config.Network != "" {
+		ev.Network = e.config.Network
+	}
+
 	select {
 	case e.buffer <- ev:
 	default:

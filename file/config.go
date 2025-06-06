@@ -50,9 +50,6 @@ func newConfig(configURL string) (*Config, error) {
 	}
 
 	c.Network = vals.Get("network")
-	if c.Network == "" {
-		return nil, fmt.Errorf("network not specified (as query param)")
-	}
 
 	c.Source = vals.Get("source")
 
