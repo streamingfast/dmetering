@@ -18,9 +18,16 @@ type Event struct {
 	Metrics          map[string]float64 `json:"metrics,omitempty"`
 	OutputModuleHash string             `json:"output_module_hash,omitempty"` //substreams-only field
 
-	UserID    string `json:"user_id"`
-	ApiKeyID  string `json:"api_key_id"`
-	IpAddress string `json:"ip_address"`
+	// OrganizationID identify the organization that emitted the event.
+	//
+	// This was previously named UserID but has been renamed to OrganizationID to
+	// better reflect the real underlying data in this field.
+	//
+	// As a measure of ensuring backward compatibility, we kept the JSON version as
+	// 'user_id' for now, we should search better how this is used to change it safely.
+	OrganizationID string `json:"user_id"`
+	ApiKeyID       string `json:"api_key_id"`
+	IpAddress      string `json:"ip_address"`
 
 	Meta string `json:"meta"`
 
@@ -28,8 +35,8 @@ type Event struct {
 }
 
 func (ev Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	if ev.UserID != "" {
-		enc.AddString("user_id", ev.UserID)
+	if ev.OrganizationID != "" {
+		enc.AddString("organization_id", ev.OrganizationID)
 	}
 	if ev.ApiKeyID != "" {
 		enc.AddString("api_key_id", ev.ApiKeyID)
@@ -55,7 +62,7 @@ func (ev Event) ToProto() *pbmetering.Event {
 	pbev.Network = ev.Network
 	pbev.OutputModuleHash = ev.OutputModuleHash
 	pbev.Timestamp = timestamppb.New(ev.Timestamp)
-	pbev.UserId = ev.UserID
+	pbev.OrganizationId = ev.OrganizationID
 	pbev.ApiKeyId = ev.ApiKeyID
 	pbev.IpAddress = ev.IpAddress
 	pbev.Meta = ev.Meta

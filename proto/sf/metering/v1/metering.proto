@@ -16,7 +16,11 @@ message Events {
 }
 
 message Event {
-  string user_id = 1;
+  // Identifies the organization that emitted the event.
+  //
+  // This was previously named user_id but has been renamed to organization_id to
+  // better reflect the real underlying data in this field.
+  string organization_id = 1;
   string api_key_id  = 2;
   string ip_address = 3;
 

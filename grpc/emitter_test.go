@@ -49,11 +49,11 @@ func newEvent(metricsKey string, metricsValue float64) dmetering.Event {
 		Metrics: map[string]float64{
 			metricsKey: metricsValue,
 		},
-		UserID:    "0bizy1111111111111111",
-		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
-		IpAddress: "192.168.1.1",
-		Meta:      "test",
-		Timestamp: time.Now(),
+		OrganizationID: "0bizy1111111111111111",
+		ApiKeyID:       "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress:      "192.168.1.1",
+		Meta:           "test",
+		Timestamp:      time.Now(),
 	}
 }
 
@@ -116,12 +116,12 @@ func TestNetworkOverride(t *testing.T) {
 		Metrics: map[string]float64{
 			"requests": 1,
 		},
-		UserID:    "0bizy1111111111111111",
-		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
-		IpAddress: "192.168.1.1",
-		Network:   "eth-mainnet",
-		Meta:      "test",
-		Timestamp: time.Now(),
+		OrganizationID: "0bizy1111111111111111",
+		ApiKeyID:       "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress:      "192.168.1.1",
+		Network:        "eth-mainnet",
+		Meta:           "test",
+		Timestamp:      time.Now(),
 	})
 
 	plugin.Shutdown(nil)
@@ -147,12 +147,12 @@ func TestNetworkIncluded(t *testing.T) {
 		Metrics: map[string]float64{
 			"requests": 1,
 		},
-		UserID:    "0bizy1111111111111111",
-		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
-		IpAddress: "192.168.1.1",
-		Network:   "eth-mainnet",
-		Meta:      "test",
-		Timestamp: time.Now(),
+		OrganizationID: "0bizy1111111111111111",
+		ApiKeyID:       "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress:      "192.168.1.1",
+		Network:        "eth-mainnet",
+		Meta:           "test",
+		Timestamp:      time.Now(),
 	})
 
 	plugin.Shutdown(nil)
@@ -178,11 +178,11 @@ func TestNetworkMissing(t *testing.T) {
 		Metrics: map[string]float64{
 			"requests": 1,
 		},
-		UserID:    "0bizy1111111111111111",
-		ApiKeyID:  "2323232323232323232323232323232323232323232323232323232323232323",
-		IpAddress: "192.168.1.1",
-		Meta:      "test",
-		Timestamp: time.Now(),
+		OrganizationID: "0bizy1111111111111111",
+		ApiKeyID:       "2323232323232323232323232323232323232323232323232323232323232323",
+		IpAddress:      "192.168.1.1",
+		Meta:           "test",
+		Timestamp:      time.Now(),
 	})
 
 	plugin.Shutdown(nil)
