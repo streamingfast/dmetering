@@ -1,17 +1,17 @@
 module github.com/streamingfast/dmetering
 
-go 1.19
+go 1.22
 
 require (
 	github.com/streamingfast/dgrpc v0.0.0-20230616153353-6bbf5534a79a
 	github.com/streamingfast/dmetrics v0.0.0-20230516031116-28fcfeb4b9ed
-	github.com/streamingfast/logging v0.0.0-20220304214715-bc750a74b424
+	github.com/streamingfast/logging v1.2.2
 	github.com/streamingfast/sf-tracing v0.0.0-20230518173934-07a78a90432e
 	github.com/streamingfast/shutter v1.5.0
-	github.com/stretchr/testify v1.8.2
-	go.uber.org/zap v1.21.0
+	github.com/stretchr/testify v1.11.1
+	go.uber.org/zap v1.28.0
 	google.golang.org/grpc v1.54.0
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -58,7 +58,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.15.1 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.0.0-20221010152910-d6f0a8c073c2 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
